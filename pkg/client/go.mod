@@ -4,7 +4,7 @@ go 1.25.0
 
 toolchain go1.25.4
 
-replace github.com/rancher/norman => github.com/rancher-teja/norman v0.0.1
+replace github.com/rancher/norman => github.com/rancher-teja/norman v0.0.0-20260116180727-3fb520dacb08
 
 require (
 	github.com/rancher/norman v0.8.1

@@ -5,14 +5,14 @@ go 1.25.0
 toolchain go1.25.4
 
 replace (
-	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v0.0.0-20260105061406-c404379d3191
-	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v0.0.1
-	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v0.0.0-20260108052030-f030aa71b713
-	github.com/rancher/fleet/pkg/apis => github.com/rancher-teja/fleet/pkg/apis v0.0.0-20260105065345-0d78efc0f9ed
-	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v0.0.0-20260108053007-8511bbae06e6
-	github.com/rancher/norman => github.com/rancher-teja/norman v0.0.1
+	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v0.0.0-20260120120204-926204a3400f
+	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v0.0.0-20260120103105-7224af9b25cc
+	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v0.0.0-20260120121056-cc61f99d2f56
+	github.com/rancher/fleet/pkg/apis => github.com/rancher-teja/fleet/pkg/apis v0.0.0-20260120104001-d1248499cde7
+	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v0.0.0-20260120120744-d7c2db1518ee
+	github.com/rancher/norman => github.com/rancher-teja/norman v0.0.0-20260116180727-3fb520dacb08
 	github.com/rancher/rke => github.com/rancher-teja/rke v0.0.0-20260105084347-a44d27becc38
-	github.com/rancher/wrangler/v3 => github.com/rancher-teja/wrangler/v3 v3.0.1
+	github.com/rancher/wrangler/v3 => github.com/rancher-teja/wrangler/v3 v3.0.0-20260120100314-0600ac179b3e
 	k8s.io/api => k8s.io/api v0.35.0
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.35.0
 	k8s.io/apimachinery => k8s.io/apimachinery v0.35.0
