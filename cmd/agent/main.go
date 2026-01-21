@@ -139,7 +139,7 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	topContext = context.WithValue(topContext, cavalidator.CACertsValidKey, false)
+	topContext = context.WithValue(topContext, cavalidator.CacertsValid, false)
 
 	// Perform root CA verification
 	var transport *http.Transport
@@ -157,7 +157,7 @@ func run(ctx context.Context) error {
 				os.Exit(1)
 			}
 		} else {
-			topContext = context.WithValue(topContext, cavalidator.CACertsValidKey, true)
+			topContext = context.WithValue(topContext, cavalidator.CacertsValid, true)
 			systemStoreConnectionCheckRequired = false
 		}
 	} else if cluster.CAStrictVerify() {
@@ -288,6 +288,7 @@ func run(ctx context.Context) error {
 		}
 
 		logrus.Infof("Connecting to %s with token starting with %s", wsURL, token[:len(token)/2])
+		logrus.Tracef("Connecting to %s with token %s", wsURL, token)
 		remotedialer.ClientConnect(ctx, wsURL, headers, nil, func(proto, address string) bool {
 			switch proto {
 			case "tcp":

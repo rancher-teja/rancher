@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -22,20 +21,15 @@ import (
 // This tool can be run with the command `dapper check-origins`.
 
 func main() {
-	if err := inner(os.Args[1], os.Args[2:], os.Getenv("OCI_CHART_DIRS"), os.Getenv("OCI_CHART_REPOSITORY")); err != nil {
+	if err := inner(os.Args[1], os.Args[2:]); err != nil {
 		panic(err)
 	}
 }
 
 const imageNotFound = "image not found"
 
-func inner(chartsPath string, imagesFromArgs []string, ociChartsPath string, ociRepository string) error {
-	rancherVersion, ok := os.LookupEnv("TAG")
-	if !ok {
-		return fmt.Errorf("no tag defining current Rancher version")
-	}
-
-	targetsAndSources, err := utilities.GatherTargetArtifactsAndSources(chartsPath, ociChartsPath, imagesFromArgs, ociRepository, rancherVersion)
+func inner(chartsPath string, imagesFromArgs []string) error {
+	targetsAndSources, err := utilities.GatherTargetImagesAndSources(chartsPath, imagesFromArgs)
 	if err != nil {
 		return err
 	}
@@ -51,17 +45,17 @@ func inner(chartsPath string, imagesFromArgs []string, ociChartsPath string, oci
 // CheckForImagesNoLongerBeingUsed determines if /pkg/img/origins.go has keys within the map which
 // are no longer relevant. If so, they should be removed from /pkg/img/origins.go so that rancher-origins.txt
 // is up-to-date for the current version of Rancher.
-func CheckForImagesNoLongerBeingUsed(targetsAndSources utilities.ArtifactTargetsAndSources) []string {
+func CheckForImagesNoLongerBeingUsed(targetsAndSources utilities.ImageTargetsAndSources) []string {
 	currentImages := make(map[string]interface{})
 	for _, e := range img.UniqueTargetImages(targetsAndSources.LinuxImagesFromArgs) {
 		currentImages[e] = true
 	}
 
-	for _, e := range img.UniqueTargetImages(targetsAndSources.TargetLinuxArtifacts) {
+	for _, e := range img.UniqueTargetImages(targetsAndSources.TargetLinuxImages) {
 		currentImages[e] = true
 	}
 
-	for _, e := range img.UniqueTargetImages(targetsAndSources.TargetWindowsArtifacts) {
+	for _, e := range img.UniqueTargetImages(targetsAndSources.TargetWindowsImages) {
 		currentImages[e] = true
 	}
 
@@ -76,7 +70,7 @@ func CheckForImagesNoLongerBeingUsed(targetsAndSources utilities.ArtifactTargets
 	return unusedImages
 }
 
-func PrintUpdatedImageOrigins(targetsAndSources utilities.ArtifactTargetsAndSources) error {
+func PrintUpdatedImageOrigins(targetsAndSources utilities.ImageTargetsAndSources) error {
 	fmt.Println("Generating updated rancher-image-origins map")
 
 	// use the existing map so that we don't
@@ -89,12 +83,12 @@ func PrintUpdatedImageOrigins(targetsAndSources utilities.ArtifactTargetsAndSour
 		return err
 	}
 	// look through the linux target images
-	err = convertImagesToRepoUrls(targetsAndSources.TargetLinuxArtifacts, imgToURL)
+	err = convertImagesToRepoUrls(targetsAndSources.TargetLinuxImages, imgToURL)
 	if err != nil {
 		return err
 	}
 	// look through the windows target images
-	err = convertImagesToRepoUrls(targetsAndSources.TargetWindowsArtifacts, imgToURL)
+	err = convertImagesToRepoUrls(targetsAndSources.TargetWindowsImages, imgToURL)
 	if err != nil {
 		return err
 	}
@@ -200,7 +194,7 @@ func checkURL(url string) (string, error) {
 		return "", err
 	}
 	if r.StatusCode != http.StatusOK {
-		return "", errors.New(imageNotFound)
+		return "", fmt.Errorf(imageNotFound)
 	}
 	return url, nil
 }

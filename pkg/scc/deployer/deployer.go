@@ -17,6 +17,8 @@ import (
 type SCCDeployer struct {
 	log log.StructuredLogger
 
+	currentSCCOperatorPodHash string
+
 	// Individual resource deployers
 	namespaceDeployer          *namespace.Deployer
 	serviceAccountDeployer     *serviceaccount.Deployer

@@ -8,9 +8,11 @@ import (
 	"strings"
 	"time"
 
+	fleet "github.com/rancher/fleet/pkg/apis/fleet.cattle.io/v1alpha1"
 	apimgmtv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	provv1 "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
 	mgmtcluster "github.com/rancher/rancher/pkg/cluster"
+	fleetconst "github.com/rancher/rancher/pkg/fleet"
 	fleetpkg "github.com/rancher/rancher/pkg/fleet"
 	fleetcontrollers "github.com/rancher/rancher/pkg/generated/controllers/fleet.cattle.io/v1alpha1"
 	v3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
@@ -19,13 +21,11 @@ import (
 	"github.com/rancher/rancher/pkg/settings"
 	"github.com/rancher/rancher/pkg/taints"
 	"github.com/rancher/rancher/pkg/wrangler"
-	"github.com/sirupsen/logrus"
-
-	fleet "github.com/rancher/fleet/pkg/apis/fleet.cattle.io/v1alpha1"
 	"github.com/rancher/wrangler/v3/pkg/apply"
 	corecontrollers "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/rancher/wrangler/v3/pkg/generic"
 	"github.com/rancher/wrangler/v3/pkg/yaml"
+	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -142,7 +142,7 @@ func (h *handler) assignWorkspace(key string, cluster *apimgmtv3.Cluster) (*apim
 
 	if cluster.Spec.Internal && cluster.Spec.FleetWorkspaceName == "" {
 		newCluster := cluster.DeepCopy()
-		newCluster.Spec.FleetWorkspaceName = fleetpkg.ClustersLocalNamespace
+		newCluster.Spec.FleetWorkspaceName = fleetconst.ClustersLocalNamespace
 		return h.clusters.Update(newCluster)
 	} else if cluster.Spec.Internal {
 		return cluster, nil
@@ -170,7 +170,7 @@ func (h *handler) assignWorkspace(key string, cluster *apimgmtv3.Cluster) (*apim
 }
 
 func (h *handler) ensureAgentMigrated(key string, cluster *fleet.Cluster) (*fleet.Cluster, error) {
-	if cluster != nil && cluster.Name == "local" && cluster.Namespace == fleetpkg.ClustersLocalNamespace &&
+	if cluster != nil && cluster.Name == "local" && cluster.Namespace == fleetconst.ClustersLocalNamespace &&
 		cluster.Spec.AgentNamespace == "" {
 		// keep re-enqueueing until agentNamespace is set. This happens before the fleet
 		// CRD is upgraded to include the new agentNamespace field
@@ -219,7 +219,7 @@ func (h *handler) createCluster(cluster *provv1.Cluster, status provv1.ClusterSt
 			h.addAPIServer(clientSecret)
 		}
 
-		agentNamespace = fleetpkg.ReleaseLocalNamespace
+		agentNamespace = fleetconst.ReleaseLocalNamespace
 		// restore fleet's hardcoded name label for the local cluster
 		labels["name"] = "local"
 		// default cluster group, used if fleet bundle has no targets, uses hardcoded name label
@@ -250,21 +250,6 @@ func (h *handler) createCluster(cluster *provv1.Cluster, status provv1.ClusterSt
 	// sort tolerations for consistent ordering to avoid unnecessary updates
 	sortTolerations(tolerations)
 
-	schedulingCustomization := &fleet.AgentSchedulingCustomization{}
-	if cluster.Spec.FleetAgentDeploymentCustomization != nil && cluster.Spec.FleetAgentDeploymentCustomization.SchedulingCustomization != nil {
-		sc := cluster.Spec.FleetAgentDeploymentCustomization.SchedulingCustomization
-		if sc.PodDisruptionBudget != nil {
-			schedulingCustomization.PodDisruptionBudget = &fleet.PodDisruptionBudgetSpec{}
-			schedulingCustomization.PodDisruptionBudget.MaxUnavailable = sc.PodDisruptionBudget.MaxUnavailable
-			schedulingCustomization.PodDisruptionBudget.MinAvailable = sc.PodDisruptionBudget.MinAvailable
-		}
-		if sc.PriorityClass != nil {
-			schedulingCustomization.PriorityClass = &fleet.PriorityClassSpec{}
-			schedulingCustomization.PriorityClass.PreemptionPolicy = sc.PriorityClass.PreemptionPolicy
-			schedulingCustomization.PriorityClass.Value = sc.PriorityClass.Value
-		}
-	}
-
 	return append(objs, &fleet.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        cluster.Name,
@@ -273,15 +258,14 @@ func (h *handler) createCluster(cluster *provv1.Cluster, status provv1.ClusterSt
 			Annotations: annotations,
 		},
 		Spec: fleet.ClusterSpec{
-			KubeConfigSecret:             clientSecret,
-			KubeConfigSecretNamespace:    cluster.Namespace,
-			AgentEnvVars:                 mgmtCluster.Spec.AgentEnvVars,
-			AgentNamespace:               agentNamespace,
-			PrivateRepoURL:               h.getPrivateRepoURL(cluster, mgmtCluster),
-			AgentTolerations:             tolerations,
-			AgentAffinity:                agentAffinity,
-			AgentResources:               mgmtcluster.GetFleetAgentResourceRequirements(mgmtCluster),
-			AgentSchedulingCustomization: schedulingCustomization,
+			KubeConfigSecret:          clientSecret,
+			KubeConfigSecretNamespace: cluster.Namespace,
+			AgentEnvVars:              mgmtCluster.Spec.AgentEnvVars,
+			AgentNamespace:            agentNamespace,
+			PrivateRepoURL:            h.getPrivateRepoURL(cluster, mgmtCluster),
+			AgentTolerations:          tolerations,
+			AgentAffinity:             agentAffinity,
+			AgentResources:            mgmtcluster.GetFleetAgentResourceRequirements(mgmtCluster),
 		},
 	}), status, nil
 }
@@ -289,7 +273,7 @@ func (h *handler) createCluster(cluster *provv1.Cluster, status provv1.ClusterSt
 // addAPIServer populates the internal API server URL and CA into the provided secret, which should be used as the
 // KubeConfig secret in the local cluster.
 func (h *handler) addAPIServer(clientSecret string) {
-	secret, err := h.secretsController.Cache().Get(fleetpkg.ClustersLocalNamespace, clientSecret)
+	secret, err := h.secretsController.Cache().Get(fleetconst.ClustersLocalNamespace, clientSecret)
 	if err != nil {
 		logrus.Warnf("local cluster provisioning: failed to get client secret: %v", err)
 		return

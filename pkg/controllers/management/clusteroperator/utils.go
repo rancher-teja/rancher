@@ -28,6 +28,11 @@ import (
 	"k8s.io/client-go/util/retry"
 )
 
+const (
+	localCluster = "local"
+	systemNS     = "cattle-system"
+)
+
 type OperatorController struct {
 	ClusterEnqueueAfter  func(name string, duration time.Duration)
 	SecretsCache         wranglerv1.SecretCache

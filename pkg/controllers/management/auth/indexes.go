@@ -71,9 +71,20 @@ func rbObjectKeys(metaObj metav1.Object) ([]string, error) {
 }
 
 func rbByClusterRoleAndSubject(rb *v1.ClusterRoleBinding) ([]string, error) {
-	return rbRoleSubjectKeys(rb.RoleRef.Name, rb.Subjects), nil
+	var subjects []v1.Subject
+	var roleName string
+
+	roleName = rb.RoleRef.Name
+	subjects = rb.Subjects
+	return rbRoleSubjectKeys(roleName, subjects), nil
 }
 
 func rbByRoleAndSubject(rb *v1.RoleBinding) ([]string, error) {
-	return rbRoleSubjectKeys(rb.RoleRef.Name, rb.Subjects), nil
+	var subjects []v1.Subject
+	var roleName string
+
+	roleName = rb.RoleRef.Name
+	subjects = rb.Subjects
+
+	return rbRoleSubjectKeys(roleName, subjects), nil
 }

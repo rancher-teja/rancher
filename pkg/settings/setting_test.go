@@ -183,7 +183,7 @@ func TestGetQuantityAsInt64(t *testing.T) {
 	assert.Equal(t, int64(1000), val)
 
 	errorQuantity := NewSetting("error-quantity", "error")
-	_, err = errorQuantity.GetQuantityAsInt64(1000)
+	val, err = errorQuantity.GetQuantityAsInt64(1000)
 	require.ErrorContains(t, err, "parsing setting: quantities must match")
 }
 

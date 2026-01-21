@@ -2,13 +2,14 @@ package alibaba
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
+
+	stderrors "errors"
 
 	"github.com/rancher/ali-operator/controller"
 	aliv1 "github.com/rancher/ali-operator/pkg/apis/ali.cattle.io/v1"
@@ -24,8 +25,9 @@ import (
 	"github.com/rancher/rancher/pkg/types/config"
 	"github.com/rancher/rancher/pkg/wrangler"
 	corecontrollers "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	wranglerv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/sirupsen/logrus"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/fields"
@@ -93,7 +95,7 @@ func (e *aliOperatorController) onClusterChange(_ string, cluster *apimgmtv3.Clu
 	// get ali Cluster Config, if it does not exist, create it
 	aliClusterConfigDynamic, err := e.DynamicClient.Namespace(namespace.GlobalNamespace).Get(context.TODO(), cluster.Name, v1.GetOptions{})
 	if err != nil {
-		if !apierrors.IsNotFound(err) {
+		if !errors.IsNotFound(err) {
 			return cluster, err
 		}
 
@@ -130,7 +132,7 @@ func (e *aliOperatorController) onClusterChange(_ string, cluster *apimgmtv3.Clu
 
 	// get ali Cluster Config's phase
 	status, _ := aliClusterConfigDynamic.Object["status"].(map[string]interface{})
-	phase := status["phase"]
+	phase, _ := status["phase"]
 	failureMessage, _ := status["failureMessage"].(string)
 	if strings.Contains(failureMessage, "403") {
 		failureMessage = fmt.Sprintf("cannot access alibaba cloud, check cloud credential: %s", failureMessage)
@@ -316,7 +318,7 @@ func (e *aliOperatorController) updateAliClusterConfig(cluster *apimgmtv3.Cluste
 		return cluster, err
 	}
 	aliClusterConfigDynamic.Object["spec"] = spec
-	_, err = e.DynamicClient.Namespace(namespace.GlobalNamespace).Update(context.TODO(), aliClusterConfigDynamic, v1.UpdateOptions{})
+	aliClusterConfigDynamic, err = e.DynamicClient.Namespace(namespace.GlobalNamespace).Update(context.TODO(), aliClusterConfigDynamic, v1.UpdateOptions{})
 	if err != nil {
 		return cluster, err
 	}
@@ -404,7 +406,7 @@ func (e *aliOperatorController) generateSATokenWithPublicAPI(cluster *apimgmtv3.
 		// In the existence of a proxy, it may be the case that the following error occurs,
 		// in which case rancher should use the tunnel connection to communicate with the cluster.
 		var urlError *url.Error
-		if errors.As(err, &urlError) && urlError.Timeout() {
+		if stderrors.As(err, &urlError) && urlError.Timeout() {
 			return "", requiresTunnel, nil
 		}
 
@@ -416,7 +418,7 @@ func (e *aliOperatorController) generateSATokenWithPublicAPI(cluster *apimgmtv3.
 }
 
 // generateAndSetServiceAccount uses the API endpoint and CA cert to generate a service account token. The token is then copied to the cluster status.
-func (e *aliOperatorController) generateAndSetServiceAccount(secretsCache corecontrollers.SecretCache, cluster *apimgmtv3.Cluster) (*apimgmtv3.Cluster, error) {
+func (e *aliOperatorController) generateAndSetServiceAccount(secretsCache wranglerv1.SecretCache, cluster *apimgmtv3.Cluster) (*apimgmtv3.Cluster, error) {
 	clusterDialer, err := e.ClientDialer.ClusterDialHolder(cluster.Name, true)
 	if err != nil {
 		return cluster, err

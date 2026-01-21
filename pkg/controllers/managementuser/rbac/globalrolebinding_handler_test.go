@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	apisv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	"github.com/rancher/rancher/pkg/controllers/status"
 	"github.com/rancher/rancher/pkg/generated/norman/management.cattle.io/v3/fakes"
@@ -56,7 +57,7 @@ func TestSync(t *testing.T) {
 					return nil, errors.NewNotFound(schema.GroupResource{}, "")
 				})
 				state.grListerMock.GetFunc = func(namespace string, name string) (*v3.GlobalRole, error) {
-					return &v3.GlobalRole{
+					return &apisv3.GlobalRole{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: rbac.GlobalAdmin,
 						},
@@ -105,7 +106,7 @@ func TestSync(t *testing.T) {
 					return &rbacv1.ClusterRoleBinding{}, nil
 				})
 				state.grListerMock.GetFunc = func(namespace string, name string) (*v3.GlobalRole, error) {
-					return &v3.GlobalRole{
+					return &apisv3.GlobalRole{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: rbac.GlobalAdmin,
 						},
@@ -136,7 +137,7 @@ func TestSync(t *testing.T) {
 			},
 			stateSetup: func(state *grbTestState) {
 				state.grListerMock.GetFunc = func(namespace string, name string) (*v3.GlobalRole, error) {
-					return &v3.GlobalRole{
+					return &apisv3.GlobalRole{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "gr",
 						},
@@ -161,7 +162,7 @@ func TestSync(t *testing.T) {
 			stateSetup: func(state *grbTestState) {
 				state.crbListerMock.EXPECT().Get(gomock.Any()).Return(nil, err)
 				state.grListerMock.GetFunc = func(namespace string, name string) (*v3.GlobalRole, error) {
-					return &v3.GlobalRole{
+					return &apisv3.GlobalRole{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: rbac.GlobalAdmin,
 						},
@@ -177,7 +178,7 @@ func TestSync(t *testing.T) {
 				state.crbClientMock.EXPECT().Create(gomock.Any()).Return(nil, err)
 				state.crbListerMock.EXPECT().Get(gomock.Any()).Return(nil, errors.NewNotFound(schema.GroupResource{}, ""))
 				state.grListerMock.GetFunc = func(namespace string, name string) (*v3.GlobalRole, error) {
-					return &v3.GlobalRole{
+					return &apisv3.GlobalRole{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: rbac.GlobalAdmin,
 						},

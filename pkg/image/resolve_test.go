@@ -6,14 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	apisv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/rancher/pkg/generated/norman/management.cattle.io/v3"
 	"github.com/rancher/rancher/pkg/settings"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	assertlib "github.com/stretchr/testify/assert"
 )
 
 func TestConvertMirroredImages(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		inputRawImages          map[string]map[string]struct{}
 		outputImagesShouldEqual map[string]map[string]struct{}
 		caseName                string
@@ -40,10 +39,11 @@ func TestConvertMirroredImages(t *testing.T) {
 		},
 	}
 
-	for _, cs := range tests {
+	assert := assertlib.New(t)
+	for _, cs := range testCases {
 		imagesSet := cs.inputRawImages
 		convertMirroredImages(imagesSet)
-		assert.Equal(t, cs.outputImagesShouldEqual, imagesSet)
+		assert.Equal(cs.outputImagesShouldEqual, imagesSet)
 	}
 }
 
@@ -54,7 +54,7 @@ func TestResolveWithCluster(t *testing.T) {
 	}
 
 	type input struct {
-		cluster            *apisv3.Cluster
+		cluster            *v3.Cluster
 		image              string
 		CattleBaseRegistry string
 	}
@@ -95,7 +95,7 @@ func TestResolveWithCluster(t *testing.T) {
 			input: input{
 				image:              "imagename",
 				CattleBaseRegistry: "",
-				cluster:            &apisv3.Cluster{},
+				cluster:            &v3.Cluster{},
 			},
 			expected: "imagename",
 		},
@@ -104,7 +104,7 @@ func TestResolveWithCluster(t *testing.T) {
 			input: input{
 				image:              "imagename",
 				CattleBaseRegistry: "default-registry.com",
-				cluster:            &apisv3.Cluster{},
+				cluster:            &v3.Cluster{},
 			},
 			expected: "default-registry.com/rancher/imagename",
 		},
@@ -113,28 +113,31 @@ func TestResolveWithCluster(t *testing.T) {
 			input: input{
 				image:              "rancher/imagename",
 				CattleBaseRegistry: "default-registry.com",
-				cluster:            &apisv3.Cluster{},
+				cluster:            &v3.Cluster{},
 			},
 			expected: "default-registry.com/rancher/imagename",
 		},
 	}
 
-	err := settings.SystemDefaultRegistry.Set("")
-	require.NoError(t, err, "Failed to test TestResolveWithCluster(), unable to set SystemDefaultRegistry")
+	if err := settings.SystemDefaultRegistry.Set(""); err != nil {
+		t.Errorf("Failed to test TestResolveWithCluster(), unable to set SystemDefaultRegistry with the err: %v", err)
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := settings.SystemDefaultRegistry.Set(tt.input.CattleBaseRegistry)
-			require.NoError(t, err, "Failed to test TestResolveWithCluster(), unable to set SystemDefaultRegistry")
-			assert.Equalf(t, tt.expected, ResolveWithCluster(tt.input.image, tt.input.cluster), "ResolveWithCluster(%v, %v)", tt.input.image, tt.input.cluster)
+			if err := settings.SystemDefaultRegistry.Set(tt.input.CattleBaseRegistry); err != nil {
+				t.Errorf("Failed to test TestResolveWithCluster(), unable to set SystemDefaultRegistry. err: %v", err)
+			}
+			assertlib.Equalf(t, tt.expected, ResolveWithCluster(tt.input.image, tt.input.cluster), "ResolveWithCluster(%v, %v)", tt.input.image, tt.input.cluster)
 		})
 	}
 
-	err = settings.SystemDefaultRegistry.Set("")
-	require.NoError(t, err, "Failed to clean up TestResolveWithCluster(), unable to set SystemDefaultRegistry")
+	if err := settings.SystemDefaultRegistry.Set(""); err != nil {
+		t.Errorf("Failed to clean up TestResolveWithCluster(), unable to set SystemDefaultRegistry with the err: %v", err)
+	}
 }
 
-func TestGetArtifacts(t *testing.T) {
+func TestGetImages(t *testing.T) {
 	// Setup a httpserver
 	server := setupTestServer()
 	defer server.Close()
@@ -182,8 +185,8 @@ func TestGetArtifacts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			imagesList, _, err := GetArtifacts(tt.chartsPath, "", tt.OsType, tt.rancherVersion, tt.GithubEndpoints, make(map[string][]string), []string{}, "")
-			assert.NoError(t, err)
+			imagesList, _, err := GetImages(tt.chartsPath, tt.OsType, tt.rancherVersion, tt.GithubEndpoints, make(map[string][]string), []string{})
+			assertlib.NoError(t, err)
 
 			for _, expected := range tt.expected {
 				found := false
@@ -193,7 +196,7 @@ func TestGetArtifacts(t *testing.T) {
 						break
 					}
 				}
-				assert.True(t, found)
+				assertlib.True(t, found)
 			}
 
 			for _, notexpected := range tt.notExpected {
@@ -205,7 +208,7 @@ func TestGetArtifacts(t *testing.T) {
 					}
 				}
 
-				assert.False(t, found)
+				assertlib.False(t, found)
 			}
 		})
 	}
@@ -252,34 +255,20 @@ func TestResolve(t *testing.T) {
 		},
 	}
 
-	err := settings.SystemDefaultRegistry.Set("")
-	require.NoError(t, err, "Failed to test TestResolveWithCluster(), unable to clean SystemDefaultRegistry")
+	if err := settings.SystemDefaultRegistry.Set(""); err != nil {
+		t.Errorf("Failed to test TestResolveWithCluster(), unable to clean SystemDefaultRegistry. Err: %v", err)
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := settings.SystemDefaultRegistry.Set(tt.input.CattleBaseRegistry)
-			require.NoError(t, err, "Failed to test TestResolveWithCluster(), unable to set SystemDefaultRegistry")
-			assert.Equalf(t, tt.expected, Resolve(tt.input.image), "Resolve(%v)", tt.input.image)
+			if err := settings.SystemDefaultRegistry.Set(tt.input.CattleBaseRegistry); err != nil {
+				t.Errorf("Failed to test TestResolveWithCluster(), unable to set SystemDefaultRegistry. Err: %v", err)
+			}
+			assertlib.Equalf(t, tt.expected, Resolve(tt.input.image), "Resolve(%v)", tt.input.image)
 		})
 	}
 
-	err = settings.SystemDefaultRegistry.Set("")
-	require.NoError(t, err, "Failed to clean up TestResolve(), unable to clean SystemDefaultRegistry")
-}
-
-func TestSetRequiredImages(t *testing.T) {
-	t.Run("linux images must contain kube-api-auth", func(t *testing.T) {
-		imagesSet := make(map[string]map[string]struct{})
-		setRequiredImages(Linux, imagesSet)
-
-		kubeApiAuth := apisv3.ToolsSystemImages.AuthSystemImages.KubeAPIAuth
-		require.Contains(t, imagesSet, kubeApiAuth)
-		assert.Contains(t, imagesSet[kubeApiAuth], imageSourceSystem)
-	})
-	t.Run("windows images should be empty", func(t *testing.T) {
-		imagesSet := make(map[string]map[string]struct{})
-		setRequiredImages(Windows, imagesSet)
-
-		require.Empty(t, imagesSet)
-	})
+	if err := settings.SystemDefaultRegistry.Set(""); err != nil {
+		t.Errorf("Failed to clean up TestResolve(), unable to clean SystemDefaultRegistry. Err: %v", err)
+	}
 }

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash"
-	"net"
 	"path"
 	"slices"
 	"sort"
@@ -63,16 +62,7 @@ func (p *Planner) addETCD(config map[string]interface{}, controlPlane *rkev1.RKE
 			if v == "" {
 				config[k] = true
 			} else {
-				if k == "etcd-s3-retention" {
-					i, err := strconv.Atoi(v)
-					if err != nil {
-						logrus.Warnf("Failed to convert etcd-s3-retention value %s to int: %v", v, err)
-						continue
-					}
-					config[k] = i
-				} else {
-					config[k] = v
-				}
+				config[k] = v
 			}
 		}
 		result = files
@@ -496,17 +486,9 @@ func updateConfigWithAddresses(config map[string]interface{}, info *machineNetwo
 	if convert.ToString(config["cloud-provider-name"]) == "" {
 		nodeExternalIPs := convert.ToStringSlice(config["node-external-ip"])
 		for _, ip := range info.ExternalAddresses {
-			if ip == "" || slices.Contains(nodeExternalIPs, ip) || slices.Contains(nodeIPs, ip) {
-				continue
+			if ip != "" && !slices.Contains(nodeExternalIPs, ip) && !slices.Contains(nodeIPs, ip) {
+				nodeExternalIPs = append(nodeExternalIPs, ip)
 			}
-
-			parsedIP := net.ParseIP(ip)
-			// Never allow IPv6 link-local addresses (fe80::/10) as node-external-ip
-			if parsedIP != nil && parsedIP.IsLinkLocalUnicast() {
-				continue
-			}
-
-			nodeExternalIPs = append(nodeExternalIPs, ip)
 		}
 		config["node-external-ip"] = nodeExternalIPs
 	}

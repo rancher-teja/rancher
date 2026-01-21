@@ -452,7 +452,7 @@ func (h *handler) reconcileMachinePreTerminateAnnotation(bootstrap *rkev1.RKEBoo
 				machine.Annotations = make(map[string]string)
 			}
 			machine.Annotations[capiMachinePreTerminateAnnotation] = capiMachinePreTerminateAnnotationOwner
-			_, err = h.machineClient.Update(machine)
+			machine, err = h.machineClient.Update(machine)
 			if err != nil {
 				return bootstrap, err
 			}

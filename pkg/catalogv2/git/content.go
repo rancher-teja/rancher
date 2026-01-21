@@ -54,7 +54,9 @@ func Chart(namespace, name, gitURL string, chartVersion *repo.ChartVersion) (io.
 }
 
 func relative(base, publicURL, path string) (string, error) {
-	path = strings.TrimPrefix(path, publicURL)
+	if strings.HasPrefix(path, publicURL) {
+		path = path[len(publicURL):]
+	}
 	path = strings.TrimPrefix(path, "file://")
 
 	baseAbs, err := filepath.Abs(base)

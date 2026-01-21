@@ -60,7 +60,9 @@ func getRequest() *http.Request {
 func TestMiddleware(t *testing.T) {
 	requests := []http.Request{}
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		requests = append(requests, *req)
+		r := *req
+		r.WithContext(context.Background())
+		requests = append(requests, r)
 	})
 	out := &strings.Builder{}
 	writerOpts := WriterOptions{}
@@ -75,6 +77,8 @@ func TestMiddleware(t *testing.T) {
 		header: http.Header{},
 		body:   bytes.NewBuffer(nil),
 	}, req)
+
+	req.WithContext(context.Background())
 
 	assert.Len(t, requests, 1, "handler did not forward request to next handler as expected")
 }

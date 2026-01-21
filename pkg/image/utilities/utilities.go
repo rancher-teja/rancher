@@ -45,24 +45,23 @@ var (
 // ImageTargetsAndSources is an aggregate type containing
 // the list of images used by Rancher for Linux and Windows,
 // as well as the source of these images.
-type ArtifactTargetsAndSources struct {
-	LinuxImagesFromArgs              []string
-	TargetLinuxArtifacts             []string
-	TargetLinuxArtifactsAndSources   []string
-	TargetWindowsArtifacts           []string
-	TargetWindowsArtifactsAndSources []string
+type ImageTargetsAndSources struct {
+	LinuxImagesFromArgs           []string
+	TargetLinuxImages             []string
+	TargetLinuxImagesAndSources   []string
+	TargetWindowsImages           []string
+	TargetWindowsImagesAndSources []string
 }
 
-// GatherTargetArtifactsAndSources queries KDM, multiple chart repos to gather all the images/oci charts used by Rancher and their source.
-// It returns an aggregate type, ArtifactTargetsAndSources, which contains the images required to run Rancher on Linux and Windows, as well
+// GatherTargetImagesAndSources queries KDM, multiple chart repos to gather all the images used by Rancher and their source.
+// It returns an aggregate type, ImageTargetsAndSources, which contains the images required to run Rancher on Linux and Windows, as well
 // as the source of each image.
-func GatherTargetArtifactsAndSources(
-	chartPaths string,
-	ociChartsPath string,
-	imagesFromArgs []string,
-	ociRepository string,
-	rancherVersion string,
-) (ArtifactTargetsAndSources, error) {
+func GatherTargetImagesAndSources(chartPaths string, imagesFromArgs []string) (ImageTargetsAndSources, error) {
+	rancherVersion, ok := os.LookupEnv("TAG")
+	if !ok {
+		return ImageTargetsAndSources{}, fmt.Errorf("no tag defining current Rancher version, cannot gather target images and sources")
+	}
+
 	if !img.IsValidSemver(rancherVersion) || !settings.IsReleaseServerVersion(rancherVersion) {
 		rancherVersion = settings.RancherVersionDev
 	}
@@ -74,11 +73,11 @@ func GatherTargetArtifactsAndSources(
 		b, err = os.ReadFile(filepath.Join(os.Getenv("HOME"), "bin", "data.json"))
 	}
 	if err != nil {
-		return ArtifactTargetsAndSources{}, fmt.Errorf("could not read data.json: %w", err)
+		return ImageTargetsAndSources{}, fmt.Errorf("could not read data.json: %w", err)
 	}
 	data, err := kontainerdrivermetadata.FromData(b)
 	if err != nil {
-		return ArtifactTargetsAndSources{}, fmt.Errorf("could not load KDM data: %w", err)
+		return ImageTargetsAndSources{}, fmt.Errorf("could not load KDM data: %w", err)
 	}
 
 	mink8sVersion := &semver.Version{
@@ -93,7 +92,7 @@ func GatherTargetArtifactsAndSources(
 	// https://www.suse.com/suse-rancher/support-matrix/all-supported-versions
 	k3sUpgradeImages, err := ext.GetExternalImages(rancherVersion, data.K3S, ext.K3S, mink8sVersion, img.Linux)
 	if err != nil {
-		return ArtifactTargetsAndSources{}, fmt.Errorf("%s: %w", "could not get external images for K3s", err)
+		return ImageTargetsAndSources{}, fmt.Errorf("%s: %w", "could not get external images for K3s", err)
 	}
 	if k3sUpgradeImages != nil {
 		externalLinuxImages["k3sUpgrade"] = k3sUpgradeImages
@@ -101,7 +100,7 @@ func GatherTargetArtifactsAndSources(
 
 	rke2LinuxImages, err := ext.GetExternalImages(rancherVersion, data.RKE2, ext.RKE2, mink8sVersion, img.Linux)
 	if err != nil {
-		return ArtifactTargetsAndSources{}, fmt.Errorf("%s: %w", "could not get external images for RKE2", err)
+		return ImageTargetsAndSources{}, fmt.Errorf("%s: %w", "could not get external images for RKE2", err)
 	}
 	if rke2LinuxImages != nil {
 		externalLinuxImages["rke2All"] = rke2LinuxImages
@@ -110,28 +109,28 @@ func GatherTargetArtifactsAndSources(
 	sort.Strings(imagesFromArgs)
 	winsIndex := sort.SearchStrings(imagesFromArgs, "rancher/wins")
 	if winsIndex > len(imagesFromArgs)-1 {
-		return ArtifactTargetsAndSources{}, fmt.Errorf("rancher/wins upgrade image not found")
+		return ImageTargetsAndSources{}, fmt.Errorf("rancher/wins upgrade image not found")
 	}
 
 	winsAgentUpdateImage := imagesFromArgs[winsIndex]
 	linuxImagesFromArgs := append(imagesFromArgs[:winsIndex], imagesFromArgs[winsIndex+1:]...)
 
-	targetArtifacts, targetArtifactsAndSources, err := img.GetArtifacts(chartPaths, ociChartsPath, img.Linux, rancherVersion, img.ExtensionEndpoints, externalLinuxImages, linuxImagesFromArgs, ociRepository)
+	targetImages, targetImagesAndSources, err := img.GetImages(chartPaths, img.Linux, rancherVersion, img.ExtensionEndpoints, externalLinuxImages, linuxImagesFromArgs)
 	if err != nil {
-		return ArtifactTargetsAndSources{}, err
+		return ImageTargetsAndSources{}, err
 	}
 
-	targetWindowsArtifacts, targetWindowsArtifactsAndSources, err := img.GetArtifacts(chartPaths, ociChartsPath, img.Windows, rancherVersion, img.ExtensionEndpoints, externalLinuxImages, []string{winsAgentUpdateImage}, ociRepository)
+	targetWindowsImages, targetWindowsImagesAndSources, err := img.GetImages(chartPaths, img.Windows, rancherVersion, img.ExtensionEndpoints, externalLinuxImages, []string{winsAgentUpdateImage})
 	if err != nil {
-		return ArtifactTargetsAndSources{}, err
+		return ImageTargetsAndSources{}, err
 	}
 
-	return ArtifactTargetsAndSources{
-		LinuxImagesFromArgs:              linuxImagesFromArgs,
-		TargetLinuxArtifacts:             targetArtifacts,
-		TargetLinuxArtifactsAndSources:   targetArtifactsAndSources,
-		TargetWindowsArtifacts:           targetWindowsArtifacts,
-		TargetWindowsArtifactsAndSources: targetWindowsArtifactsAndSources,
+	return ImageTargetsAndSources{
+		LinuxImagesFromArgs:           linuxImagesFromArgs,
+		TargetLinuxImages:             targetImages,
+		TargetLinuxImagesAndSources:   targetImagesAndSources,
+		TargetWindowsImages:           targetWindowsImages,
+		TargetWindowsImagesAndSources: targetWindowsImagesAndSources,
 	}, nil
 }
 
@@ -229,12 +228,14 @@ func MirrorScript(arch string, targetImages []string) error {
 	scriptStarter := getScript(arch, "mirror")
 	fmt.Fprint(mirror, scriptStarter)
 
+	var saveImages []string
 	for _, targetImage := range targetImages {
 		srcImage, ok := img.Mirrors[targetImage]
 		if !ok {
 			continue
 		}
 
+		saveImages = append(saveImages, targetImage)
 		fmt.Fprintf(mirror, "docker pull %s\n", srcImage)
 		if targetImage != srcImage {
 			fmt.Fprintf(mirror, "docker tag %s %s\n", srcImage, targetImage)
@@ -274,8 +275,8 @@ func saveImagesAndSources(imagesAndSources []string) []string {
 
 func checkImage(image string) error {
 	// ignore non prefixed images, also in types (image/mirror.go)
-    if strings.HasPrefix(image, "weaveworks") || strings.HasPrefix(image, "noiro") || strings.HasPrefix(image, "rancher-teja") || strings.HasPrefix(image, "registry.k8s.io") {
-        return nil
+	if strings.HasPrefix(image, "weaveworks") || strings.HasPrefix(image, "noiro") || strings.HasPrefix(image, "rancher-teja") || strings.HasPrefix(image, "registry.k8s.io") {
+		return nil
 	}
 	imageNameTag := strings.Split(image, ":")
 	if len(imageNameTag) != 2 {

@@ -26,7 +26,7 @@ func (w Wrapper) Validator(request *types.APIContext, schema *types.Schema, data
 		return err
 	}
 
-	if gr.Builtin {
+	if gr.Builtin == true {
 		// Drop everything but locked and defaults. If it's builtin nothing else can change.
 		for k := range data {
 			if k == "newUserDefault" {

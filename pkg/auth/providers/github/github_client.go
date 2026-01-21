@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -337,7 +338,10 @@ func (g *GClient) postToGithub(url string, form url.Values) ([]byte, error) {
 	case 200:
 	case 201:
 	default:
-		return nil, fmt.Errorf("request failed, got status code: %d", resp.StatusCode)
+		var body bytes.Buffer
+		io.Copy(&body, resp.Body)
+		return nil, fmt.Errorf("request failed, got status code: %d. Response: %s",
+			resp.StatusCode, body.Bytes())
 	}
 	return io.ReadAll(resp.Body)
 }
@@ -361,7 +365,10 @@ func (g *GClient) getFromGithub(githubAccessToken string, url string) ([]byte, s
 	case 200:
 	case 201:
 	default:
-		return nil, "", fmt.Errorf("request failed, got status code: %d", resp.StatusCode)
+		var body bytes.Buffer
+		io.Copy(&body, resp.Body)
+		return nil, "", fmt.Errorf("request failed, got status code: %d. Response: %s",
+			resp.StatusCode, body.Bytes())
 	}
 
 	nextURL := g.nextGithubPage(resp)

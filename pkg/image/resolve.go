@@ -8,8 +8,8 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
-	apisv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	util "github.com/rancher/rancher/pkg/cluster"
+	v3 "github.com/rancher/rancher/pkg/generated/norman/management.cattle.io/v3"
 	"github.com/rancher/rancher/pkg/settings"
 )
 
@@ -17,11 +17,10 @@ var Mirrors = map[string]string{}
 
 // ExportConfig provides parameters you can define to configure image exporting for Rancher components
 type ExportConfig struct {
-	RancherVersion   string
-	ChartsPath       string
-	OCIChartsGitPath string
-	GithubEndpoints  []GithubEndpoint
-	OsType           OSType
+	RancherVersion  string
+	ChartsPath      string
+	GithubEndpoints []GithubEndpoint
+	OsType          OSType
 }
 
 type OSType int
@@ -29,12 +28,6 @@ type OSType int
 const (
 	Linux OSType = iota
 	Windows
-)
-
-// Image source types.
-const (
-	imageSourceCore   = "core"
-	imageSourceSystem = "system"
 )
 
 // Resolve calls ResolveWithCluster passing nil into the cluster argument.
@@ -47,7 +40,7 @@ func Resolve(image string) string {
 // ResolveWithCluster returns the image concatenated with the URL of the private registry specified, adding rancher/ if is a private repo.
 // It will use the cluster level registry if one is found, or the system default registry if no cluster level registry is found.
 // If either is not found, it returns the image.
-func ResolveWithCluster(image string, cluster *apisv3.Cluster) string {
+func ResolveWithCluster(image string, cluster *v3.Cluster) string {
 	reg := util.GetPrivateRegistryURL(cluster)
 	if reg != "" && !strings.HasPrefix(image, reg) {
 		// Images from Dockerhub Library repo, we add rancher prefix when using private registry
@@ -59,62 +52,44 @@ func ResolveWithCluster(image string, cluster *apisv3.Cluster) string {
 	return image
 }
 
-// GetArtifacts fetches the list of container images/oci chart urls used in the sources provided in the chartsPath,
-// ociChartsGitPaths and extensionendpoints. Rancher/Prime charts, system images and extension images of Rancher
-// are fetched. GetArtifacts is called during runtime by Rancher catalog package which is deprecated.
+// GetImages fetches the list of container images used in the sources provided in the chartsPath
+// and extensionendpoints. Rancher/Prime charts, system images and extension images of Rancher
+// are fetched. GetImages is called during runtime by Rancher catalog package which is deprecated.
 // It is actually used for generation rancher-images.txt for airgap scenarios.
-func GetArtifacts(
-	chartsPath string,
-	ociChartsGitPaths string,
+func GetImages(chartsPath string,
 	osType OSType,
 	rancherVersion string,
 	extensionEndpoints []GithubEndpoint,
 	externalImages map[string][]string,
-	imagesFromArgs []string,
-	ociRepository string,
-) ([]string, []string, error) {
+	imagesFromArgs []string) ([]string, []string, error) {
 	imagesSet := make(map[string]map[string]struct{})
-
-	exportConfig := ExportConfig{
-		OsType:         osType,
-		RancherVersion: rancherVersion,
-	}
 
 	chartsPathList := strings.Split(chartsPath, ",")
 	for _, chartPath := range chartsPathList {
-		chartExportConfig := exportConfig
-		chartExportConfig.ChartsPath = chartPath
+		exportConfig := ExportConfig{
+			ChartsPath:     chartPath,
+			OsType:         osType,
+			RancherVersion: rancherVersion,
+		}
 
-		charts := Charts{chartExportConfig}
+		charts := Charts{exportConfig}
 		if err := charts.FetchImages(imagesSet); err != nil {
 			return nil, nil, errors.Wrap(err, "failed to fetch images from charts")
 		}
 	}
 
-	if ociChartsGitPaths != "" {
-		ociChartPaths := strings.Split(ociChartsGitPaths, ",")
-		for _, ociChartPath := range ociChartPaths {
-			exportConfig := ExportConfig{
-				OCIChartsGitPath: ociChartPath,
-				RancherVersion:   rancherVersion,
-			}
-
-			charts := Charts{exportConfig}
-			if err := charts.FetchOCICharts(imagesSet, ociRepository); err != nil {
-				return nil, nil, errors.Wrap(err, "failed to fetch OCI charts")
-			}
-		}
+	exportConfig := ExportConfig{
+		OsType:          osType,
+		RancherVersion:  rancherVersion,
+		GithubEndpoints: extensionEndpoints,
 	}
-
 	// fetch images from extension catalog images
-	extExportConfig := exportConfig
-	extExportConfig.GithubEndpoints = extensionEndpoints
-	extensions := ExtensionsConfig{extExportConfig}
+	extensions := ExtensionsConfig{exportConfig}
 	if err := extensions.FetchExtensionImages(imagesSet); err != nil {
 		return nil, nil, errors.Wrap(err, "failed to fetch images from extensions")
 	}
 
-	setRequiredImages(exportConfig.OsType, imagesSet)
+	setRequirementImages(exportConfig.OsType, imagesSet)
 
 	// set rancher images from args
 	setImages("rancher", imagesFromArgs, imagesSet)
@@ -135,15 +110,15 @@ func IsValidSemver(version string) bool {
 	return err == nil
 }
 
-func setRequiredImages(osType OSType, imagesSet map[string]map[string]struct{}) {
-	if osType == Linux {
-		addSourceToImage(imagesSet, settings.SCCOperatorImage.Get(), imageSourceCore)
-		addSourceToImage(imagesSet, settings.ShellImage.Get(), imageSourceCore)
-		addSourceToImage(imagesSet, settings.MachineProvisionImage.Get(), imageSourceCore)
-		addSourceToImage(imagesSet, "rancher/mirrored-bci-busybox:15.6.24.2", imageSourceCore)
-		addSourceToImage(imagesSet, "rancher/mirrored-bci-micro:15.6.24.2", imageSourceCore)
-		// kube-api-auth is required for ACE.
-		addSourceToImage(imagesSet, apisv3.ToolsSystemImages.AuthSystemImages.KubeAPIAuth, imageSourceSystem)
+func setRequirementImages(osType OSType, imagesSet map[string]map[string]struct{}) {
+	coreLabel := "core"
+	switch osType {
+	case Linux:
+		addSourceToImage(imagesSet, settings.SCCOperatorImage.Get(), coreLabel)
+		addSourceToImage(imagesSet, settings.ShellImage.Get(), coreLabel)
+		addSourceToImage(imagesSet, settings.MachineProvisionImage.Get(), coreLabel)
+		addSourceToImage(imagesSet, "rancher/mirrored-bci-busybox:15.6.24.2", coreLabel)
+		addSourceToImage(imagesSet, "rancher/mirrored-bci-micro:15.6.24.2", coreLabel)
 	}
 }
 

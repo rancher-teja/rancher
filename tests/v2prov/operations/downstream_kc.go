@@ -44,7 +44,10 @@ func GetAndVerifyDownstreamClientset(clients *clients.Clients, c *v1.Cluster) (*
 	}
 	// Try to continuously get the kubernetes default service
 	err = retry.OnError(defaults.DownstreamRetry, func(err error) bool {
-		return !apierrors.IsForbidden(err)
+		if apierrors.IsForbidden(err) {
+			return false
+		}
+		return true
 	}, func() error {
 		_, err = clientset.CoreV1().Services(corev1.NamespaceDefault).Get(context.TODO(), "kubernetes", metav1.GetOptions{})
 		return err

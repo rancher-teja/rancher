@@ -14,7 +14,6 @@ import (
 
 	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	provisioningv1api "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
-	"github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1/snapshotutil"
 	rkev1 "github.com/rancher/rancher/pkg/apis/rke.cattle.io/v1"
 	"github.com/rancher/rancher/pkg/capr"
 	"github.com/rancher/rancher/pkg/controllers/capr/machineprovision"
@@ -369,7 +368,7 @@ func getPodLogs(clients *clients.Clients, podNamespace, podName string) (string,
 	for reader.Scan() {
 		logs = logs + fmt.Sprintf("%sSnewlineG", reader.Text())
 	}
-	return snapshotutil.CompressInterface(logs)
+	return capr.CompressInterface(logs)
 }
 
 // countPodLogRegexOccurances gathers the logs from the specified pod in a manner similar to `kubectl logs` and counts the number of times the log matches the given regex.
@@ -421,7 +420,7 @@ func getPodFileContents(podNamespace, podName, podPath string) (string, error) {
 	for reader.Scan() {
 		logs = logs + fmt.Sprintf("%sSnewlineG", reader.Text())
 	}
-	return snapshotutil.CompressInterface(logs)
+	return capr.CompressInterface(logs)
 }
 
 // GatherDebugData gathers debug data that is relevant to the current cluster and returns a gzip compressed + base64 encoded string of the json.
@@ -440,6 +439,8 @@ func GatherDebugData(clients *clients.Clients, c *provisioningv1api.Cluster) (st
 
 	var rkeBootstraps []*rkev1.RKEBootstrap
 	var infraMachines []*unstructured.Unstructured
+	var machineSecrets []*corev1.Secret
+
 	var podLogs = make(map[string]map[string]string)
 
 	machines, newErr := Machines(clients, c)
@@ -466,6 +467,16 @@ func GatherDebugData(clients *clients.Clients, c *provisioningv1api.Cluster) (st
 					// In the case of a podmachine, the pod name will be strings.ReplaceAll(infra.meta.GetName(), ".", "-")
 					podName := strings.ReplaceAll(im.GetName(), ".", "-")
 					podLogs[podName] = populatePodLogs(clients, newControlPlane, im.GetNamespace(), podName)
+				}
+			}
+			ms, newErr := clients.Core.Secret().List(machine.Namespace, metav1.ListOptions{
+				LabelSelector: fmt.Sprintf("cluster.x-k8s.io/cluster-name=%s,rke.cattle.io/machine-name=", machine.Name),
+			})
+			if newErr != nil {
+				logrus.Errorf("failed to get secrets for machine %s: %v", machine.Name, newErr)
+			} else {
+				for _, s := range ms.Items {
+					machineSecrets = append(machineSecrets, s.DeepCopy())
 				}
 			}
 		}
@@ -537,7 +548,7 @@ func GatherDebugData(clients *clients.Clients, c *provisioningv1api.Cluster) (st
 		snapshots = nil
 	}
 
-	return snapshotutil.CompressInterface(map[string]interface{}{
+	return capr.CompressInterface(map[string]interface{}{
 		"cluster":               newC,
 		"rkecontrolplane":       newControlPlane,
 		"mgmtCluster":           mgmtCluster,

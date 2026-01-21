@@ -45,6 +45,11 @@ var (
 		APIGroups: []string{""},
 		Resources: []string{"pod"},
 	}
+	templatePolicyRule = rbacv1.PolicyRule{
+		Verbs:     []string{"*"},
+		APIGroups: []string{"*"},
+		Resources: []string{"*"},
+	}
 
 	defaultGR = v3.GlobalRole{
 		ObjectMeta: metav1.ObjectMeta{
@@ -87,6 +92,15 @@ var (
 		},
 		Rules: []rbacv1.PolicyRule{
 			readPodPolicyRule,
+		},
+	}
+
+	catalogGR = v3.GlobalRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "catalogRole",
+		},
+		Rules: []rbacv1.PolicyRule{
+			templatePolicyRule,
 		},
 	}
 

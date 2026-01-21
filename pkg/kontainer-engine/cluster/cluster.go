@@ -377,27 +377,27 @@ func FromCluster(cluster *Cluster, addr string, configGetter ConfigGetter, persi
 // flattenIfNotExist take a map into driverOptions, if the key not exist
 func flattenIfNotExist(data map[string]interface{}, driverOptions *types.DriverOptions) {
 	for k, v := range data {
-		switch v := v.(type) {
+		switch v.(type) {
 		case float64:
 			if _, exist := driverOptions.IntOptions[k]; !exist {
-				driverOptions.IntOptions[k] = int64(v)
+				driverOptions.IntOptions[k] = int64(v.(float64))
 			}
 		case string:
 			if _, exist := driverOptions.StringOptions[k]; !exist {
-				driverOptions.StringOptions[k] = v
+				driverOptions.StringOptions[k] = v.(string)
 			}
 		case bool:
 			if _, exist := driverOptions.BoolOptions[k]; !exist {
-				driverOptions.BoolOptions[k] = v
+				driverOptions.BoolOptions[k] = v.(bool)
 			}
 		case []interface{}:
 			// lists of strings come across as lists of interfaces, have to convert them manually
 			var stringArray []string
 
-			for _, stringInterface := range v {
-				switch stringInterface := stringInterface.(type) {
+			for _, stringInterface := range v.([]interface{}) {
+				switch stringInterface.(type) {
 				case string:
-					stringArray = append(stringArray, stringInterface)
+					stringArray = append(stringArray, stringInterface.(string))
 				}
 			}
 
@@ -409,13 +409,13 @@ func flattenIfNotExist(data map[string]interface{}, driverOptions *types.DriverO
 			}
 		case []string:
 			if _, exist := driverOptions.StringSliceOptions[k]; !exist {
-				driverOptions.StringSliceOptions[k] = &types.StringSlice{Value: v}
+				driverOptions.StringSliceOptions[k] = &types.StringSlice{Value: v.([]string)}
 			}
 		case map[string]interface{}:
 			// hack for labels
 			if k == "tags" {
 				r := make([]string, 0, 4)
-				for key1, value1 := range v {
+				for key1, value1 := range v.(map[string]interface{}) {
 					r = append(r, fmt.Sprintf("%v=%v", key1, value1))
 				}
 
@@ -423,7 +423,7 @@ func flattenIfNotExist(data map[string]interface{}, driverOptions *types.DriverO
 					driverOptions.StringSliceOptions[k] = &types.StringSlice{Value: r}
 				}
 			} else {
-				flattenIfNotExist(v, driverOptions)
+				flattenIfNotExist(v.(map[string]interface{}), driverOptions)
 			}
 		case nil:
 			logrus.Debugf("could not convert %v because value is nil %v=%v", reflect.TypeOf(v), k, v)

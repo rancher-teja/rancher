@@ -111,7 +111,7 @@ var (
 	CSIProxyAgentVersion                = NewSetting("csi-proxy-agent-version", "")
 	CSIProxyAgentURL                    = NewSetting("csi-proxy-agent-url", "https://acs-mirror.azureedge.net/csi-proxy/%[1]s/binaries/csi-proxy-%[1]s.tar.gz")
 	SystemAgentInstallScript            = NewSetting("system-agent-install-script", "https://github.com/rancher/system-agent/releases/download/v0.3.15-rc.1/install.sh") // To ensure consistency between SystemAgentInstallScript default value and CATTLE_SYSTEM_AGENT_INSTALL_SCRIPT to utilize the local system-agent-install.sh script when both values are equal.
-	WinsAgentInstallScript              = NewSetting("wins-agent-install-script", "https://raw.githubusercontent.com/rancher/wins/v0.5.4-rc.1/install.ps1")
+	WinsAgentInstallScript              = NewSetting("wins-agent-install-script", "https://raw.githubusercontent.com/rancher/wins/v0.5.3/install.ps1")
 	SystemAgentInstallerImage           = NewSetting("system-agent-installer-image", "") // Defined via environment variable
 	SystemAgentUpgradeImage             = NewSetting("system-agent-upgrade-image", "")   // Defined via environment variable
 	WinsAgentUpgradeImage               = NewSetting("wins-agent-upgrade-image", "")
@@ -139,7 +139,7 @@ var (
 	GKEUpstreamRefresh                  = NewSetting("gke-refresh", "300")
 	AlibabaUpstreamRefresh              = NewSetting("alibaba-refresh", "300")
 	HideLocalCluster                    = NewSetting("hide-local-cluster", "false")
-	MachineProvisionImage               = NewSetting("machine-provision-image", "rancher/machine:v0.15.0-rancher138")
+	MachineProvisionImage               = NewSetting("machine-provision-image", "rancher/machine:v0.15.0-rancher137")
 	SystemFeatureChartRefreshSeconds    = NewSetting("system-feature-chart-refresh-seconds", "21600")
 	ClusterAgentDefaultAffinity         = NewSetting("cluster-agent-default-affinity", ClusterAgentAffinity)
 	FleetAgentDefaultAffinity           = NewSetting("fleet-agent-default-affinity", FleetAgentAffinity)
@@ -147,8 +147,6 @@ var (
 
 	ClusterAgentDefaultPriorityClass       = NewSetting("cluster-agent-default-priority-class", ClusterAgentPriorityClass)
 	ClusterAgentDefaultPodDisruptionBudget = NewSetting("cluster-agent-default-pod-disruption-budget", ClusterAgentPodDisruptionBudget)
-	FleetAgentDefaultPriorityClass         = NewSetting("fleet-agent-default-priority-class", FleetAgentPriorityClass)
-	FleetAgentDefaultPodDisruptionBudget   = NewSetting("fleet-agent-default-pod-disruption-budget", FleetAgentPodDisruptionBudget)
 
 	Rke2DefaultVersion = NewSetting("rke2-default-version", "")
 	K3sDefaultVersion  = NewSetting("k3s-default-version", "")

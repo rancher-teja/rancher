@@ -183,10 +183,7 @@ var (
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "rb-visjzlqzqw",
 			Namespace: "test-namespace",
-			Labels: map[string]string{
-				"authz.cluster.cattle.io/prtb-owner-test-prtb":  "true",
-				"management.cattle.io/roletemplate-aggregation": "true",
-			},
+			Labels:    map[string]string{"authz.cluster.cattle.io/prtb-owner-test-prtb": "true"},
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind:     "ClusterRole",
@@ -319,6 +316,7 @@ func Test_reconcileBindings(t *testing.T) {
 				m.EXPECT().List("test-namespace", metav1.ListOptions{LabelSelector: ownerLabel}).Return(&rbacv1.RoleBindingList{
 					Items: []rbacv1.RoleBinding{},
 				}, nil)
+				m.EXPECT().Get("test-namespace", defaultRB.Name, metav1.GetOptions{}).Return(nil, errNotFound)
 				m.EXPECT().Create(defaultRB.DeepCopy()).Return(nil, nil)
 			},
 			prtb: defaultPRTB.DeepCopy(),
@@ -332,7 +330,22 @@ func Test_reconcileBindings(t *testing.T) {
 				m.EXPECT().List("test-namespace", metav1.ListOptions{LabelSelector: ownerLabel}).Return(&rbacv1.RoleBindingList{
 					Items: []rbacv1.RoleBinding{},
 				}, nil)
+				m.EXPECT().Get("test-namespace", defaultRB.Name, metav1.GetOptions{}).Return(nil, errNotFound)
 				m.EXPECT().Create(defaultRB.DeepCopy()).Return(nil, errDefault)
+			},
+			prtb:    defaultPRTB.DeepCopy(),
+			wantErr: true,
+		},
+		{
+			name: "error getting RB",
+			setupCRController: func(m *fake.MockNonNamespacedControllerInterface[*rbacv1.ClusterRole, *rbacv1.ClusterRoleList]) {
+				m.EXPECT().Get("test-rt-project-mgmt-aggregator", metav1.GetOptions{}).Return(nil, nil)
+			},
+			setupRBController: func(m *fake.MockControllerInterface[*rbacv1.RoleBinding, *rbacv1.RoleBindingList]) {
+				m.EXPECT().List("test-namespace", metav1.ListOptions{LabelSelector: ownerLabel}).Return(&rbacv1.RoleBindingList{
+					Items: []rbacv1.RoleBinding{},
+				}, nil)
+				m.EXPECT().Get("test-namespace", defaultRB.Name, metav1.GetOptions{}).Return(nil, errDefault)
 			},
 			prtb:    defaultPRTB.DeepCopy(),
 			wantErr: true,

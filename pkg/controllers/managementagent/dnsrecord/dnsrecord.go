@@ -137,7 +137,9 @@ func (c *Controller) reconcileEndpoints(key string, obj *corev1.Service) error {
 			continue
 		}
 		for _, subset := range targetEndpoint.Subsets {
-			addresses = append(addresses, subset.Addresses...)
+			for _, addr := range subset.Addresses {
+				addresses = append(addresses, addr)
+			}
 		}
 		targetEndpointUUID := fmt.Sprintf("%s/%s", targetEndpoint.Namespace, targetEndpoint.Name)
 		targetEndpointUUIDs[targetEndpointUUID] = true

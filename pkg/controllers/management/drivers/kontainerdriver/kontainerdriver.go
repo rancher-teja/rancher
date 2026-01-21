@@ -7,12 +7,14 @@ import (
 	"regexp"
 	"strings"
 
-	errorsutil "github.com/pkg/errors"
 	v32 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
+
+	errorsutil "github.com/pkg/errors"
 	"github.com/rancher/rancher/pkg/controllers/management/clusterprovisioner"
 	"github.com/rancher/rancher/pkg/controllers/management/drivers"
 	"github.com/rancher/rancher/pkg/controllers/management/drivers/nodedriver"
 	corev1 "github.com/rancher/rancher/pkg/generated/norman/core/v1"
+	v1 "github.com/rancher/rancher/pkg/generated/norman/core/v1"
 	v3 "github.com/rancher/rancher/pkg/generated/norman/management.cattle.io/v3"
 	"github.com/rancher/rancher/pkg/kontainer-engine/service"
 	"github.com/rancher/rancher/pkg/kontainer-engine/types"
@@ -45,7 +47,7 @@ func Register(ctx context.Context, management *config.ManagementContext) {
 type Lifecycle struct {
 	dynamicSchemas       v3.DynamicSchemaInterface
 	dynamicSchemasLister v3.DynamicSchemaLister
-	namespaces           corev1.NamespaceInterface
+	namespaces           v1.NamespaceInterface
 	coreV1               corev1.Interface
 	clusterClient        v3.ClusterInterface
 }

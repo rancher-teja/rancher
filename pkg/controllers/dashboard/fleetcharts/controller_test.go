@@ -1,6 +1,7 @@
 package fleetcharts
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -19,6 +20,8 @@ import (
 )
 
 var (
+	errUnimplemented  = fmt.Errorf("unimplemented")
+	errNotFound       = fmt.Errorf("not found")
 	priorityClassName = "rancher-critical"
 )
 

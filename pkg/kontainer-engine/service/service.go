@@ -74,21 +74,21 @@ func (c controllerConfigGetter) GetConfig() (types.DriverOptions, error) {
 // flatten take a map and flatten it and convert it into driverOptions
 func flatten(data map[string]interface{}, driverOptions *types.DriverOptions) {
 	for k, v := range data {
-		switch v := v.(type) {
+		switch v.(type) {
 		case float64:
-			driverOptions.IntOptions[k] = int64(v)
+			driverOptions.IntOptions[k] = int64(v.(float64))
 		case string:
-			driverOptions.StringOptions[k] = v
+			driverOptions.StringOptions[k] = v.(string)
 		case bool:
-			driverOptions.BoolOptions[k] = v
+			driverOptions.BoolOptions[k] = v.(bool)
 		case []interface{}:
 			// lists of strings come across as lists of interfaces, have to convert them manually
 			var stringArray []string
 
-			for _, stringInterface := range v {
-				switch stringInterface := stringInterface.(type) {
+			for _, stringInterface := range v.([]interface{}) {
+				switch stringInterface.(type) {
 				case string:
-					stringArray = append(stringArray, stringInterface)
+					stringArray = append(stringArray, stringInterface.(string))
 				}
 			}
 
@@ -97,17 +97,18 @@ func flatten(data map[string]interface{}, driverOptions *types.DriverOptions) {
 				driverOptions.StringSliceOptions[k] = &types.StringSlice{Value: stringArray}
 			}
 		case []string:
-			driverOptions.StringSliceOptions[k] = &types.StringSlice{Value: v}
+			driverOptions.StringSliceOptions[k] = &types.StringSlice{Value: v.([]string)}
 		case map[string]interface{}:
 			// hack for labels
 			if k == "labels" {
-				r := make([]string, 0, len(v))
-				for key, value := range v {
+				m := v.(map[string]interface{})
+				r := make([]string, 0, len(m))
+				for key, value := range m {
 					r = append(r, fmt.Sprintf("%v=%v", key, value))
 				}
 				driverOptions.StringSliceOptions[k] = &types.StringSlice{Value: r}
 			} else {
-				flatten(v, driverOptions)
+				flatten(v.(map[string]interface{}), driverOptions)
 			}
 		case nil:
 			logrus.Debugf("could not convert %v because value is nil %v=%v", reflect.TypeOf(v), k, v)

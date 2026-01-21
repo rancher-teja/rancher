@@ -15,6 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+var fakeKontinerDriverLister = fakes.KontainerDriverListerMock{}
+
 func Test_syncKEv2OperatorsSetting(t *testing.T) {
 	defaultNotFoundErr := errors.NewNotFound(schema.GroupResource{}, "")
 	genericErr := fmt.Errorf("generic error")

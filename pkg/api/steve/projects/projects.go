@@ -11,6 +11,7 @@ import (
 	"github.com/rancher/rancher/pkg/wrangler"
 	"github.com/rancher/steve/pkg/accesscontrol"
 	"github.com/rancher/steve/pkg/attributes"
+	"github.com/rancher/steve/pkg/auth"
 	"github.com/rancher/steve/pkg/client"
 	"github.com/rancher/steve/pkg/schema"
 	steveserver "github.com/rancher/steve/pkg/server"
@@ -21,6 +22,7 @@ import (
 type projectServer struct {
 	ctx            context.Context
 	asl            accesscontrol.AccessSetLookup
+	auth           auth.Middleware
 	cf             *client.Factory
 	clusterLinks   []string
 	namespaceCache corecontrollers.NamespaceCache

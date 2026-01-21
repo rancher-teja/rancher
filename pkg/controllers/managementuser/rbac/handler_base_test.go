@@ -46,6 +46,7 @@ var (
 type clientErrs struct {
 	getError    error
 	listError   error
+	updateError error
 	createError error
 }
 

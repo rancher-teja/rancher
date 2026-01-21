@@ -22,9 +22,11 @@ import (
 	corev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
+	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/cache"
 )
 
 const bearerTokenType = "Bearer"
@@ -54,6 +56,7 @@ type tokenHandler struct {
 	oidcClientCache     wrangmgmtv3.OIDCClientCache
 	oidcClient          wrangmgmtv3.OIDCClientClient
 	secretCache         corev1.SecretCache
+	oidcClientIndexer   cache.Indexer
 	jwks                signingKeyGetter
 	now                 func() time.Time
 }
@@ -152,7 +155,7 @@ func (h *tokenHandler) createTokenFromCode(r *http.Request) (TokenResponse, *oid
 	code := r.FormValue("code")
 	session, err := h.sessionClient.Get(code)
 	if err != nil {
-		if apierrors.IsNotFound(err) {
+		if errors.IsNotFound(err) {
 			return TokenResponse{}, oidcerror.New(oidcerror.InvalidRequest, "invalid code")
 		}
 		return TokenResponse{}, oidcerror.New(oidcerror.ServerError, "error retrieving session :"+err.Error())
@@ -198,7 +201,7 @@ func (h *tokenHandler) createTokenFromCode(r *http.Request) (TokenResponse, *oid
 
 	rancherToken, err := h.tokenCache.Get(session.TokenName)
 	if err != nil {
-		if apierrors.IsNotFound(err) {
+		if errors.IsNotFound(err) {
 			return TokenResponse{}, oidcerror.New(oidcerror.InvalidRequest, "Rancher token is not valid anymore")
 		}
 		return TokenResponse{}, oidcerror.New(oidcerror.ServerError, "failed to get Rancher token: "+err.Error())
@@ -206,7 +209,7 @@ func (h *tokenHandler) createTokenFromCode(r *http.Request) (TokenResponse, *oid
 	resp, oidcErr := h.createTokenResponse(rancherToken, oidcClient, session.Nonce, session.Scope)
 	if oidcErr == nil {
 		err := h.sessionClient.Remove(code)
-		if err != nil && !apierrors.IsNotFound(err) {
+		if err != nil && !errors.IsNotFound(err) {
 			logrus.Warnf("[OIDC provider] error removing session: %v", err)
 		}
 	}

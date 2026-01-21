@@ -106,7 +106,10 @@ func Info(pemCerts, pemKey string) (*CertificateInfo, error) {
 		certInfo.SerialNumber = cert.SerialNumber.String()
 		certInfo.Version = cert.Version
 
-		certInfo.SubjectAlternativeNames = append(certInfo.SubjectAlternativeNames, cert.DNSNames...)
+		for _, name := range cert.DNSNames {
+			certInfo.SubjectAlternativeNames = append(certInfo.SubjectAlternativeNames, name)
+		}
+
 		for _, ip := range cert.IPAddresses {
 			certInfo.SubjectAlternativeNames = append(certInfo.SubjectAlternativeNames, ip.String())
 		}

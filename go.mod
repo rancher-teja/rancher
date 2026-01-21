@@ -9,25 +9,25 @@ replace (
 	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible // rancher-machine requires a replace is set
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
 	github.com/matryer/moq => github.com/rancher/moq v0.0.0-20200712062324-13d1f37d2d77
-	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v0.0.0-20260120120204-926204a3400f
-	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v0.0.0-20260120103105-7224af9b25cc
-	github.com/rancher/apiserver => github.com/rancher-teja/apiserver v0.0.2-0.20260120100927-428adac2c452
-	github.com/rancher/channelserver => github.com/rancher-teja/channelserver v0.0.0-20260120115819-68569b9a87c3
-	github.com/rancher/dynamiclistener => github.com/rancher-teja/dynamiclistener v0.0.0-20260120102506-f68f27f52250
-	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v0.0.0-20260120121056-cc61f99d2f56
-	github.com/rancher/fleet/pkg/apis => github.com/rancher-teja/fleet/pkg/apis v0.0.0-20260120104001-d1248499cde7
-	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v0.0.0-20260120120744-d7c2db1518ee
+	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v0.0.0-20260121094121-98864ac34d53
+	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v0.0.0-20260121061345-6e5c84fecf48
+	github.com/rancher/apiserver => github.com/rancher-teja/apiserver v0.0.2-0.20260121054052-ffb8ec5c3389
+	github.com/rancher/channelserver => github.com/rancher-teja/channelserver v0.0.0-20260121092754-689c11653973
+	github.com/rancher/dynamiclistener => github.com/rancher-teja/dynamiclistener v0.0.0-20260121060105-5f551de4741d
+	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v0.0.0-20260121100406-71690bae7c18
+	github.com/rancher/fleet/pkg/apis => github.com/rancher-teja/fleet/pkg/apis v0.0.0-20260121071226-3c2642941b72
+	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v0.0.0-20260121095707-846e09ad6c83
 	github.com/rancher/kubernetes-provider-detector => github.com/rancher-teja/kubernetes-provider-detector v0.0.0-20260120114133-6b9f71fb55fb
-	github.com/rancher/machine => github.com/rancher-teja/machine v0.0.0-20260120104723-5eba57a0ec38
-	github.com/rancher/norman => github.com/rancher-teja/norman v0.0.0-20260116180727-3fb520dacb08
+	github.com/rancher/machine => github.com/rancher-teja/machine v0.0.0-20260121083139-be2812fdee91
+	github.com/rancher/norman => github.com/rancher-teja/norman v0.0.0-20260121055309-d16831adb28a
 	github.com/rancher/rancher/pkg/apis => ./pkg/apis
 	github.com/rancher/rancher/pkg/client => ./pkg/client
-	github.com/rancher/remotedialer-proxy => github.com/rancher-teja/remotedialer-proxy v0.0.0-20260120111547-d20bba7f5719
-	github.com/rancher/rke => github.com/rancher-teja/rke v0.0.0-20260120112653-e8b4f8c42e7e
-	github.com/rancher/shepherd => github.com/rancher-teja/shepherd v0.0.0-20260120121931-2a3f06b99754
-	github.com/rancher/steve => github.com/rancher-teja/steve v0.0.0-20260120114827-43d098bd2f9b
-	github.com/rancher/system-upgrade-controller/pkg/apis => github.com/rancher-teja/system-upgrade-controller/pkg/apis v0.0.0-20260120111240-f05a60586525
-	github.com/rancher/wrangler/v3 => github.com/rancher-teja/wrangler/v3 v3.0.0-20260120100314-0600ac179b3e
+	github.com/rancher/remotedialer-proxy => github.com/rancher-teja/remotedialer-proxy v0.0.0-20260121085851-bc38e9f229c6
+	github.com/rancher/rke => github.com/rancher-teja/rke v0.0.0-20260121091014-9096637e7c68
+	github.com/rancher/shepherd => github.com/rancher-teja/shepherd v0.0.0-20260121102532-13cd590411dc
+	github.com/rancher/steve => github.com/rancher-teja/steve v0.0.0-20260121092005-63b99c882ea7
+	github.com/rancher/system-upgrade-controller/pkg/apis => github.com/rancher-teja/system-upgrade-controller/pkg/apis v0.0.0-20260121084456-85309cfdf803
+	github.com/rancher/wrangler/v3 => github.com/rancher-teja/wrangler/v3 v3.0.0-20260121050704-d55794d5af80
 	github.com/stretchr/testify => github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc => go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.64.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp => go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0
@@ -387,7 +387,7 @@ require (
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/onsi/gomega v1.38.2 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect

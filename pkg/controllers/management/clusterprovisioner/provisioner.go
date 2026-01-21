@@ -126,7 +126,7 @@ func (p *Provisioner) Updated(cluster *apimgmtv3.Cluster) (runtime.Object, error
 	}
 
 	obj, err := apimgmtv3.ClusterConditionUpdated.Do(cluster, func() (runtime.Object, error) {
-		anno := cluster.Annotations[KontainerEngineUpdate]
+		anno, _ := cluster.Annotations[KontainerEngineUpdate]
 		if anno == "updated" {
 			// Cluster has already been updated proceed as usual
 			setVersion(cluster)
@@ -526,8 +526,7 @@ func (p *Provisioner) reconcileCluster(cluster *apimgmtv3.Cluster, create bool) 
 		}
 
 		logrus.Errorf("failed to update cluster [%s]: %v", cluster.Name, err)
-		//lint:ignore SA1004 intentional use of nanoseconds
-		time.Sleep(2) //nolint:staticcheck //SA1004
+		time.Sleep(2)
 	}
 
 	if !saved {

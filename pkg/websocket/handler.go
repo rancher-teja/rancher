@@ -63,7 +63,10 @@ func checkSameOrigin(r *http.Request) bool {
 
 // isWebsocket returns true if the request is a websocket
 func isWebsocket(r *http.Request) bool {
-	return headerListContainsValue(r.Header, connectionHeader, "upgrade")
+	if !headerListContainsValue(r.Header, connectionHeader, "upgrade") {
+		return false
+	}
+	return true
 }
 
 // headerListContainsValue returns true if the token header with the given name contains token.

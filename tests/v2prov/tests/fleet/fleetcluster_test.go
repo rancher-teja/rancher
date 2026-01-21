@@ -132,14 +132,9 @@ func Test_Fleet_Cluster(t *testing.T) {
 	require.Contains(cluster.Spec.AgentTolerations, tolerations[0])
 
 	// changes are present in deployment
-	require.Eventually(func() bool {
-		agent, err = clients.Apps.Deployment().Get(cluster.Status.Agent.Namespace, "fleet-agent", metav1.GetOptions{})
-		if err == nil && agent != nil {
-			return reflect.DeepEqual(&linuxAffinity, agent.Spec.Template.Spec.Affinity)
-		}
-		return false
-	}, waitFor, tick)
-
+	agent, err = clients.Apps.Deployment().Get(cluster.Status.Agent.Namespace, "fleet-agent", metav1.GetOptions{})
+	require.NoError(err)
+	require.Equal(&linuxAffinity, agent.Spec.Template.Spec.Affinity)
 	for _, container := range agent.Spec.Template.Spec.InitContainers {
 		require.Equal(resourceReq.Limits, container.Resources.Limits)
 		require.Equal(resourceReq.Requests, container.Resources.Requests)

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	apisv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
+	apisv1 "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
 	provisioningv1 "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
 	v3 "github.com/rancher/rancher/pkg/generated/norman/management.cattle.io/v3"
 	"github.com/rancher/wrangler/v3/pkg/generic"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	rbacv1 "k8s.io/api/rbac/v1"
+	v1 "k8s.io/api/rbac/v1"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -103,13 +105,13 @@ func Test_OnRemoveRole(t *testing.T) {
 	funcName := "OnRemoveRole()"
 	tests := []struct {
 		name        string
-		role        *rbacv1.Role
+		role        *v1.Role
 		wantEnqueue bool
 		wantErr     bool
 	}{
 		{
 			name: "Want enqueue",
-			role: &rbacv1.Role{
+			role: &v1.Role{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: createNameAndNamespaceAnnotation(clusterDeletingAnnotationLabel),
 				},
@@ -119,13 +121,13 @@ func Test_OnRemoveRole(t *testing.T) {
 		},
 		{
 			name:        "Want no error",
-			role:        &rbacv1.Role{},
+			role:        &v1.Role{},
 			wantEnqueue: false,
 			wantErr:     false,
 		},
 		{
 			name: "Want error",
-			role: &rbacv1.Role{
+			role: &v1.Role{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: createNameAndNamespaceAnnotation(clusterErrorAnnotationLabel),
 				},
@@ -153,13 +155,13 @@ func Test_OnRemoveRoleBinding(t *testing.T) {
 	funcName := "OnRemoveRoleBinding()"
 	tests := []struct {
 		name        string
-		role        *rbacv1.RoleBinding
+		role        *v1.RoleBinding
 		wantEnqueue bool
 		wantErr     bool
 	}{
 		{
 			name: "Want enqueue",
-			role: &rbacv1.RoleBinding{
+			role: &v1.RoleBinding{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: createNameAndNamespaceAnnotation(clusterDeletingAnnotationLabel),
 				},
@@ -169,13 +171,13 @@ func Test_OnRemoveRoleBinding(t *testing.T) {
 		},
 		{
 			name:        "Want no error",
-			role:        &rbacv1.RoleBinding{},
+			role:        &v1.RoleBinding{},
 			wantEnqueue: false,
 			wantErr:     false,
 		},
 		{
 			name: "Want error",
-			role: &rbacv1.RoleBinding{
+			role: &v1.RoleBinding{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: createNameAndNamespaceAnnotation(clusterErrorAnnotationLabel),
 				},
@@ -203,13 +205,13 @@ func Test_OnRemoveClusterRole(t *testing.T) {
 	funcName := "OnRemoveClusterRole()"
 	tests := []struct {
 		name        string
-		role        *rbacv1.ClusterRole
+		role        *v1.ClusterRole
 		wantEnqueue bool
 		wantErr     bool
 	}{
 		{
 			name: "Want enqueue",
-			role: &rbacv1.ClusterRole{
+			role: &v1.ClusterRole{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: createNameAnnotation(clusterDeletingAnnotationLabel),
 				},
@@ -219,13 +221,13 @@ func Test_OnRemoveClusterRole(t *testing.T) {
 		},
 		{
 			name:        "Want no error",
-			role:        &rbacv1.ClusterRole{},
+			role:        &v1.ClusterRole{},
 			wantEnqueue: false,
 			wantErr:     false,
 		},
 		{
 			name: "Want error",
-			role: &rbacv1.ClusterRole{
+			role: &v1.ClusterRole{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: createNameAnnotation(clusterErrorAnnotationLabel),
 				},
@@ -253,13 +255,13 @@ func Test_OnRemoveClusterRoleBinding(t *testing.T) {
 	funcName := "OnRemoveClusterRoleBinding()"
 	tests := []struct {
 		name        string
-		role        *rbacv1.ClusterRoleBinding
+		role        *v1.ClusterRoleBinding
 		wantEnqueue bool
 		wantErr     bool
 	}{
 		{
 			name: "Want enqueue",
-			role: &rbacv1.ClusterRoleBinding{
+			role: &v1.ClusterRoleBinding{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: createNameAnnotation(clusterDeletingAnnotationLabel),
 				},
@@ -269,13 +271,13 @@ func Test_OnRemoveClusterRoleBinding(t *testing.T) {
 		},
 		{
 			name:        "Want no error",
-			role:        &rbacv1.ClusterRoleBinding{},
+			role:        &v1.ClusterRoleBinding{},
 			wantEnqueue: false,
 			wantErr:     false,
 		},
 		{
 			name: "Want error",
-			role: &rbacv1.ClusterRoleBinding{
+			role: &v1.ClusterRoleBinding{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: createNameAnnotation(clusterErrorAnnotationLabel),
 				},
@@ -340,7 +342,7 @@ func simpleHandler(t *testing.T) *handler {
 	mockRoleBindingController := fake.NewMockControllerInterface[*rbacv1.RoleBinding, *rbacv1.RoleBindingList](ctrl)
 	mockRoleBindingController.EXPECT().EnqueueAfter(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 
-	mockCluster := fake.NewMockCacheInterface[*provisioningv1.Cluster](ctrl)
+	mockCluster := fake.NewMockCacheInterface[*apisv1.Cluster](ctrl)
 	mockCluster.EXPECT().Get("deleted", gomock.Any()).Return(nil, apierror.NewNotFound(schema.GroupResource{}, "deleted")).AnyTimes()
 	mockCluster.EXPECT().Get("deleting", gomock.Any()).Return(newDeletingCuster(), nil).AnyTimes()
 	mockCluster.EXPECT().Get("other error", gomock.Any()).Return(nil, errors.New("other error")).AnyTimes()

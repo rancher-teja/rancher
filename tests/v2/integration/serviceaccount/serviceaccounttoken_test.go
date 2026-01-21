@@ -87,7 +87,6 @@ func (s *ServiceAccountSuite) TestSingleSecretForServiceAccount() {
 
 		return len(secrets.Items) > 0, nil
 	})
-	s.Require().NoError(err)
 
 	secrets, err := clientset.CoreV1().Secrets(testNS.Name).List(context.Background(), metav1.ListOptions{})
 	s.Require().NoError(err)

@@ -15,8 +15,9 @@ import (
 )
 
 type MetadataController struct {
-	Settings mgmtcontrollers.SettingController
-	ctx      context.Context
+	Settings        mgmtcontrollers.SettingController
+	wranglerContext *wrangler.Context
+	ctx             context.Context
 }
 
 type Data struct {

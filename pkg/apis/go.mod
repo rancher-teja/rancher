@@ -52,7 +52,6 @@ require (
 	github.com/rancher/rke v1.8.0
 	github.com/rancher/wrangler/v3 v3.3.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.11.1
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.0
 	sigs.k8s.io/cluster-api v1.10.6
@@ -111,7 +110,7 @@ require (
 	k8s.io/component-base v0.35.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 // indirect
-	k8s.io/kubernetes v1.34.1 // indirect
+	k8s.io/kubernetes v1.35.0 // indirect
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect

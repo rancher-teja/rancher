@@ -669,6 +669,19 @@ var (
 		Subjects: []rbacv1.Subject{defaultSubject},
 		RoleRef:  projectOwnerRoleRef,
 	}
+	projectOwnerRT = v3.RoleTemplate{
+		Builtin: true,
+		Context: "project",
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "project-owner",
+		},
+	}
+	projectMemberRT = v3.RoleTemplate{
+		Context: "project",
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-rt",
+		},
+	}
 )
 
 func Test_createOrUpdateProjectMembershipBinding(t *testing.T) {
@@ -802,7 +815,7 @@ func Test_deleteProjectMembershipBinding(t *testing.T) {
 			name: "error listing role bindings",
 			prtb: defaultPRTB.DeepCopy(),
 			setupRBController: func(m *fake.MockControllerInterface[*rbacv1.RoleBinding, *rbacv1.RoleBindingList]) {
-				m.EXPECT().List("test-cluster", listOption).Return(nil, errDefault)
+				m.EXPECT().List("test-project", listOption).Return(nil, errDefault)
 			},
 			wantErr: true,
 		},
@@ -822,7 +835,7 @@ func Test_deleteProjectMembershipBinding(t *testing.T) {
 					},
 				}
 
-				m.EXPECT().List("test-cluster", listOption).Return(&rbacv1.RoleBindingList{
+				m.EXPECT().List("test-project", listOption).Return(&rbacv1.RoleBindingList{
 					Items: []rbacv1.RoleBinding{rb},
 				}, nil)
 				m.EXPECT().Delete(rb.Namespace, rb.Name, &deleteOption).Return(errDefault)
@@ -845,7 +858,7 @@ func Test_deleteProjectMembershipBinding(t *testing.T) {
 					},
 				}
 
-				m.EXPECT().List("test-cluster", listOption).Return(&rbacv1.RoleBindingList{
+				m.EXPECT().List("test-project", listOption).Return(&rbacv1.RoleBindingList{
 					Items: []rbacv1.RoleBinding{rb},
 				}, nil)
 				m.EXPECT().Delete(rb.Namespace, rb.Name, &deleteOption).Return(nil)
@@ -868,7 +881,7 @@ func Test_deleteProjectMembershipBinding(t *testing.T) {
 					},
 				}
 
-				m.EXPECT().List("test-cluster", listOption).Return(&rbacv1.RoleBindingList{
+				m.EXPECT().List("test-project", listOption).Return(&rbacv1.RoleBindingList{
 					Items: []rbacv1.RoleBinding{rb},
 				}, nil)
 				rb.Labels = map[string]string{"test-namespace_test-prtb2": "true"}
@@ -892,7 +905,7 @@ func Test_deleteProjectMembershipBinding(t *testing.T) {
 					},
 				}
 
-				m.EXPECT().List("test-cluster", listOption).Return(&rbacv1.RoleBindingList{
+				m.EXPECT().List("test-project", listOption).Return(&rbacv1.RoleBindingList{
 					Items: []rbacv1.RoleBinding{rb},
 				}, nil)
 				rb.Labels = map[string]string{"test-namespace_test-prtb2": "true"}

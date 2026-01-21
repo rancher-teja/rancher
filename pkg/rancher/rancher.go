@@ -11,6 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rancher/rancher/pkg/scc"
+	"github.com/rancher/rancher/pkg/telemetry"
+	"github.com/rancher/rancher/pkg/telemetry/initcond"
+	"github.com/rancher/rancher/pkg/utils"
+
 	"github.com/Masterminds/semver/v3"
 	responsewriter "github.com/rancher/apiserver/pkg/middleware"
 	normanStoreProxy "github.com/rancher/norman/store/proxy"
@@ -45,16 +50,12 @@ import (
 	"github.com/rancher/rancher/pkg/kontainerdrivermetadata"
 	"github.com/rancher/rancher/pkg/multiclustermanager"
 	"github.com/rancher/rancher/pkg/namespace"
-	"github.com/rancher/rancher/pkg/scc"
 	"github.com/rancher/rancher/pkg/serviceaccounttoken"
 	"github.com/rancher/rancher/pkg/settings"
-	"github.com/rancher/rancher/pkg/telemetry"
 	telemetrycontrollers "github.com/rancher/rancher/pkg/telemetry/controllers"
-	"github.com/rancher/rancher/pkg/telemetry/initcond"
 	"github.com/rancher/rancher/pkg/tls"
 	"github.com/rancher/rancher/pkg/types/config"
 	"github.com/rancher/rancher/pkg/ui"
-	"github.com/rancher/rancher/pkg/utils"
 	"github.com/rancher/rancher/pkg/websocket"
 	"github.com/rancher/rancher/pkg/wrangler"
 	aggregation2 "github.com/rancher/steve/pkg/aggregation"
@@ -70,6 +71,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/net"
@@ -468,11 +470,13 @@ func (r *Rancher) Start(ctx context.Context) error {
 
 	r.Wrangler.OnLeaderOrDie("rancher-start::DefferedCAPIRegistration", func(ctx context.Context) error {
 		errChan := r.Wrangler.DeferredCAPIRegistration.DeferFuncWithError(runRKE2Migrations)
-		err, ok := <-errChan
-		if !ok {
-			return nil
+		select {
+		case err, ok := <-errChan:
+			if !ok {
+				return nil
+			}
+			return err
 		}
-		return err
 	})
 
 	if utils.IsMCMServerOnly() && features.RancherSCCRegistrationExtension.Enabled() {
@@ -654,7 +658,7 @@ func setupRancherService(ctx context.Context, restConfig *rest.Config, httpsList
 
 	s, err := clientset.CoreV1().Services(namespace.System).Get(ctx, apiservice.RancherServiceName, metav1.GetOptions{})
 	if err != nil {
-		if apierrors.IsNotFound(err) {
+		if k8serror.IsNotFound(err) {
 			refreshService = true
 		} else {
 			return fmt.Errorf("error looking for rancher service: %w", err)
@@ -669,7 +673,7 @@ func setupRancherService(ctx context.Context, restConfig *rest.Config, httpsList
 		logrus.Debugf("setupRancherService refreshing service")
 		if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 			if s, err := clientset.CoreV1().Services(namespace.System).Get(ctx, apiservice.RancherServiceName, metav1.GetOptions{}); err != nil {
-				if apierrors.IsNotFound(err) {
+				if k8serror.IsNotFound(err) {
 					if _, err := clientset.CoreV1().Services(namespace.System).Create(ctx, &service, metav1.CreateOptions{}); err != nil {
 						return err
 					}
@@ -717,7 +721,7 @@ func setupRancherService(ctx context.Context, restConfig *rest.Config, httpsList
 	refreshEndpoint := false
 	e, err := clientset.CoreV1().Endpoints(namespace.System).Get(ctx, apiservice.RancherServiceName, metav1.GetOptions{})
 	if err != nil {
-		if apierrors.IsNotFound(err) {
+		if k8serror.IsNotFound(err) {
 			refreshEndpoint = true
 		} else {
 			return fmt.Errorf("error looking for rancher endpoint while setting up rancher service: %w", err)
@@ -733,7 +737,7 @@ func setupRancherService(ctx context.Context, restConfig *rest.Config, httpsList
 		logrus.Debugf("setupRancherService refreshing endpoint")
 		if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 			if e, err := clientset.CoreV1().Endpoints(namespace.System).Get(ctx, apiservice.RancherServiceName, metav1.GetOptions{}); err != nil {
-				if apierrors.IsNotFound(err) {
+				if k8serror.IsNotFound(err) {
 					if _, err := clientset.CoreV1().Endpoints(namespace.System).Create(ctx, &endpoint, metav1.CreateOptions{}); err != nil {
 						return err
 					}
@@ -774,7 +778,7 @@ func bumpRancherWebhookIfNecessary(ctx context.Context, restConfig *rest.Config)
 
 	rancherWebhookDeployment, err := clientset.AppsV1().Deployments(namespace.System).Get(ctx, "rancher-webhook", metav1.GetOptions{})
 	if err != nil {
-		if apierrors.IsNotFound(err) {
+		if k8serror.IsNotFound(err) {
 			return nil
 		}
 		return err
@@ -816,7 +820,7 @@ func migrateEncryptionConfig(ctx context.Context, restConfig *rest.Config) error
 
 	clusters, err := clusterDynamicClient.List(ctx, metav1.ListOptions{})
 	if err != nil {
-		if !apierrors.IsNotFound(err) {
+		if !k8serror.IsNotFound(err) {
 			return err
 		}
 		// IsNotFound error means the CRD type doesn't exist in the cluster, indicating this is the first Rancher startup
@@ -862,7 +866,7 @@ func migrateEncryptionConfig(ctx context.Context, restConfig *rest.Config) error
 			if err == nil {
 				return true, nil
 			}
-			if apierrors.IsConflict(err) || apierrors.IsServiceUnavailable(err) || apierrors.IsInternalError(err) {
+			if k8serror.IsConflict(err) || k8serror.IsServiceUnavailable(err) || k8serror.IsInternalError(err) {
 				return false, nil
 			}
 			return false, err
@@ -894,7 +898,7 @@ func checkForRKE1Resources(wranglerContext *wrangler.Context) ([]string, error) 
 
 	// Check for RKE1 clusters
 	clusters, err := wranglerContext.Mgmt.Cluster().List(metav1.ListOptions{})
-	if apierrors.IsNotFound(err) {
+	if k8serror.IsNotFound(err) {
 		clusters = &v3.ClusterList{}
 	} else if err != nil {
 		return nil, fmt.Errorf("error checking RKE1 clusters: %w", err)
@@ -909,7 +913,7 @@ func checkForRKE1Resources(wranglerContext *wrangler.Context) ([]string, error) 
 	// NodeTemplates in the global node template namespace
 	nodeTemplates, err := wranglerContext.Mgmt.NodeTemplate().List(namespace.NodeTemplateGlobalNamespace, metav1.ListOptions{})
 
-	if apierrors.IsNotFound(err) {
+	if k8serror.IsNotFound(err) {
 		nodeTemplates = &v3.NodeTemplateList{}
 	} else if err != nil {
 		return nil, fmt.Errorf("error checking nodeTemplates: %w", err)
@@ -922,7 +926,7 @@ func checkForRKE1Resources(wranglerContext *wrangler.Context) ([]string, error) 
 	// ClusterTemplates in the global namespace
 	clusterTemplates, err := wranglerContext.Mgmt.ClusterTemplate().List(namespace.GlobalNamespace, metav1.ListOptions{})
 
-	if apierrors.IsNotFound(err) {
+	if k8serror.IsNotFound(err) {
 		clusterTemplates = &v3.ClusterTemplateList{}
 	} else if err != nil {
 		return nil, fmt.Errorf("error checking clusterTemplates: %w", err)

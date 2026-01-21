@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	apisv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	"github.com/rancher/rancher/pkg/controllers/status"
 	controllersv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
@@ -47,7 +48,7 @@ var (
 		ObjectMeta: v1.ObjectMeta{
 			Name: "test-project",
 		},
-		Status: v3.ProjectStatus{
+		Status: apisv3.ProjectStatus{
 			BackingNamespace: "c-ABC-p-XYZ",
 		},
 	}
@@ -703,7 +704,7 @@ func setupTest(t *testing.T) crtbTestState {
 func Test_removeMGMTClusterScopedPrivilegesInProjectNamespace(t *testing.T) {
 	tests := []struct {
 		name                  string
-		projectListFunc       func(string, labels.Selector) ([]*v3.Project, error)
+		projectListFunc       func(string, labels.Selector) ([]*apisv3.Project, error)
 		roleBindingListFunc   func(string, labels.Selector) ([]*rbacv1.RoleBinding, error)
 		roleBindingDeleteFunc func(string, string, *v1.DeleteOptions) error
 		binding               *v3.ClusterRoleTemplateBinding
@@ -711,7 +712,7 @@ func Test_removeMGMTClusterScopedPrivilegesInProjectNamespace(t *testing.T) {
 	}{
 		{
 			name: "error listing projects",
-			projectListFunc: func(s1 string, s2 labels.Selector) ([]*v3.Project, error) {
+			projectListFunc: func(s1 string, s2 labels.Selector) ([]*apisv3.Project, error) {
 				return nil, errDefault
 			},
 			binding: defaultCRTB.DeepCopy(),
@@ -719,8 +720,8 @@ func Test_removeMGMTClusterScopedPrivilegesInProjectNamespace(t *testing.T) {
 		},
 		{
 			name: "error listing rolebindings",
-			projectListFunc: func(s1 string, s2 labels.Selector) ([]*v3.Project, error) {
-				return []*v3.Project{
+			projectListFunc: func(s1 string, s2 labels.Selector) ([]*apisv3.Project, error) {
+				return []*apisv3.Project{
 					defaultProject.DeepCopy(),
 				}, nil
 			},
@@ -732,8 +733,8 @@ func Test_removeMGMTClusterScopedPrivilegesInProjectNamespace(t *testing.T) {
 		},
 		{
 			name: "error deleting rolebindings",
-			projectListFunc: func(s1 string, s2 labels.Selector) ([]*v3.Project, error) {
-				return []*v3.Project{
+			projectListFunc: func(s1 string, s2 labels.Selector) ([]*apisv3.Project, error) {
+				return []*apisv3.Project{
 					defaultProject.DeepCopy(),
 				}, nil
 			},
@@ -750,8 +751,8 @@ func Test_removeMGMTClusterScopedPrivilegesInProjectNamespace(t *testing.T) {
 		},
 		{
 			name: "successfully delete rolebindings no backing namespace",
-			projectListFunc: func(s1 string, s2 labels.Selector) ([]*v3.Project, error) {
-				return []*v3.Project{
+			projectListFunc: func(s1 string, s2 labels.Selector) ([]*apisv3.Project, error) {
+				return []*apisv3.Project{
 					defaultProject.DeepCopy(),
 				}, nil
 			},
@@ -769,8 +770,8 @@ func Test_removeMGMTClusterScopedPrivilegesInProjectNamespace(t *testing.T) {
 		},
 		{
 			name: "successfully delete rolebindings with backing namespace",
-			projectListFunc: func(s1 string, s2 labels.Selector) ([]*v3.Project, error) {
-				return []*v3.Project{
+			projectListFunc: func(s1 string, s2 labels.Selector) ([]*apisv3.Project, error) {
+				return []*apisv3.Project{
 					backingNamespaceProject.DeepCopy(),
 				}, nil
 			},

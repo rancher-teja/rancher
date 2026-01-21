@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/rancher/rancher/pkg/controllers/management/authprovisioningv2"
-	"github.com/rancher/rancher/pkg/features"
 	v3 "github.com/rancher/rancher/pkg/generated/norman/management.cattle.io/v3"
 	typesrbacv1 "github.com/rancher/rancher/pkg/generated/norman/rbac.authorization.k8s.io/v1"
 	pkgrbac "github.com/rancher/rancher/pkg/rbac"
@@ -45,10 +44,6 @@ type prtbLifecycle struct {
 }
 
 func (p *prtbLifecycle) Create(obj *v3.ProjectRoleTemplateBinding) (runtime.Object, error) {
-	if features.AggregatedRoleTemplates.Enabled() {
-		return nil, nil
-	}
-
 	if obj.ServiceAccount != "" {
 		return obj, nil
 	}
@@ -61,10 +56,6 @@ func (p *prtbLifecycle) Create(obj *v3.ProjectRoleTemplateBinding) (runtime.Obje
 }
 
 func (p *prtbLifecycle) Updated(obj *v3.ProjectRoleTemplateBinding) (runtime.Object, error) {
-	if features.AggregatedRoleTemplates.Enabled() {
-		return nil, nil
-	}
-
 	if obj.ServiceAccount != "" {
 		return obj, nil
 	}
@@ -80,10 +71,6 @@ func (p *prtbLifecycle) Updated(obj *v3.ProjectRoleTemplateBinding) (runtime.Obj
 }
 
 func (p *prtbLifecycle) Remove(obj *v3.ProjectRoleTemplateBinding) (runtime.Object, error) {
-	if features.AggregatedRoleTemplates.Enabled() {
-		return nil, nil
-	}
-
 	parts := strings.SplitN(obj.ProjectName, ":", 2)
 	if len(parts) < 2 {
 		return nil, fmt.Errorf("cannot determine project and cluster from %v", obj.ProjectName)

@@ -14,6 +14,7 @@ import (
 	"github.com/rancher/norman/types"
 	"github.com/rancher/norman/types/convert"
 	apiv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
+	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	"github.com/rancher/rancher/pkg/auth/accessor"
 	"github.com/rancher/rancher/pkg/auth/util"
 	clientv3 "github.com/rancher/rancher/pkg/client/generated/management/v3"
@@ -48,10 +49,10 @@ const (
 )
 
 type tokenClient interface {
-	Create(*apiv3.Token) (*apiv3.Token, error)
-	Update(*apiv3.Token) (*apiv3.Token, error)
-	Get(string, metav1.GetOptions) (*apiv3.Token, error)
-	List(metav1.ListOptions) (*apiv3.TokenList, error)
+	Create(*v3.Token) (*v3.Token, error)
+	Update(*v3.Token) (*v3.Token, error)
+	Get(string, metav1.GetOptions) (*v3.Token, error)
+	List(metav1.ListOptions) (*v3.TokenList, error)
 	Delete(string, *metav1.DeleteOptions) error
 }
 

@@ -157,7 +157,7 @@ ARG CATTLE_KDM_BRANCH
 ENV CATTLE_CHART_DEFAULT_BRANCH=$CHART_DEFAULT_BRANCH
 ENV CATTLE_PARTNER_CHART_DEFAULT_BRANCH=$PARTNER_CHART_DEFAULT_BRANCH
 ENV CATTLE_RKE2_CHART_DEFAULT_BRANCH=$RKE2_CHART_DEFAULT_BRANCH
-ENV CATTLE_MACHINE_VERSION=v0.15.0-rancher138
+ENV CATTLE_MACHINE_VERSION=v0.15.0-rancher137
 ENV CATTLE_K3S_VERSION=v1.35.0+k3s1
 ENV CATTLE_MACHINE_PROVISION_IMAGE=rancher/machine:${CATTLE_MACHINE_VERSION}
 ENV CATTLE_ETCD_VERSION=v3.5.21
@@ -168,7 +168,7 @@ ENV CATTLE_HELM_VERSION=v3.19.0-rancher1
 # make sure the version number is consistent with the one at Line 100 of pkg/data/management/machinedriver_data.go
 ENV DOCKER_MACHINE_HARVESTER_VERSION=v1.0.4
 ENV CATTLE_KDM_BRANCH=${CATTLE_KDM_BRANCH}
-ENV CATTLE_WINS_AGENT_VERSION=v0.5.4-rc.1
+ENV CATTLE_WINS_AGENT_VERSION=v0.5.3
 ENV CATTLE_WINS_AGENT_INSTALL_SCRIPT=https://raw.githubusercontent.com/rancher/wins/${CATTLE_WINS_AGENT_VERSION}/install.ps1
 ENV CATTLE_WINS_AGENT_UNINSTALL_SCRIPT=https://raw.githubusercontent.com/rancher/wins/${CATTLE_WINS_AGENT_VERSION}/uninstall.ps1
 ENV CATTLE_WINS_AGENT_UPGRADE_IMAGE=rancher/wins:${CATTLE_WINS_AGENT_VERSION}
@@ -488,7 +488,7 @@ COPY --from=rke2-charts /var/lib/rancher-data/local-catalogs/v2/rancher-rke2-cha
 COPY --from=kdm /var/lib/rancher-data/driver-metadata/data.json /var/lib/rancher-data/driver-metadata/data.json
 COPY --from=tini /usr/bin/tini /usr/bin/
 COPY --from=agent-build /app/agent /usr/bin/
-COPY package/loglevel package/run.sh /usr/bin/
+COPY package/loglevel package/run.sh package/kubectl-shell.sh package/shell-setup.sh /usr/bin/
 WORKDIR /var/lib/rancher
 
 LABEL "io.artifacthub.package.logo-url"="https://raw.githubusercontent.com/rancher/ui/master/public/assets/images/logos/welcome-cow.svg" \

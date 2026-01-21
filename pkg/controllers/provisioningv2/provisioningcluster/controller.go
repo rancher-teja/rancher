@@ -9,7 +9,6 @@ import (
 	"github.com/rancher/lasso/pkg/dynamic"
 	apimgmtv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	rancherv1 "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
-	"github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1/snapshotutil"
 	rkev1 "github.com/rancher/rancher/pkg/apis/rke.cattle.io/v1"
 	"github.com/rancher/rancher/pkg/capr"
 	"github.com/rancher/rancher/pkg/features"
@@ -25,7 +24,8 @@ import (
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/errors"
+	apierror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -33,7 +33,10 @@ import (
 )
 
 const (
-	byNodeInfra = "by-node-infra"
+	byNodeInfra                       = "by-node-infra"
+	restoreRKEConfigKubernetesVersion = "kubernetesVersion"
+	restoreRKEConfigAll               = "all"
+	restoreRKEConfigNone              = "none"
 )
 
 type handler struct {
@@ -229,7 +232,7 @@ func (h *handler) findSnapshotClusterSpec(snapshotNamespace, snapshotName string
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving etcdsnapshot %s/%s: %w", snapshotNamespace, snapshotName, err)
 	}
-	return snapshotutil.ParseSnapshotClusterSpecOrError(snapshot)
+	return capr.ParseSnapshotClusterSpecOrError(snapshot)
 }
 
 // reconcileClusterSpecEtcdRestore reconciles the cluster against the desiredSpec, but only sets fields that should be set
@@ -317,7 +320,7 @@ func (h *handler) OnRancherClusterChange(obj *rancherv1.Cluster, status rancherv
 		if obj.Spec.RKEConfig.ETCDSnapshotRestore != nil &&
 			obj.Spec.RKEConfig.ETCDSnapshotRestore.Name != "" &&
 			obj.Spec.RKEConfig.ETCDSnapshotRestore.RestoreRKEConfig != "" &&
-			obj.Spec.RKEConfig.ETCDSnapshotRestore.RestoreRKEConfig != rkev1.RestoreRKEConfigNone {
+			obj.Spec.RKEConfig.ETCDSnapshotRestore.RestoreRKEConfig != restoreRKEConfigNone {
 			logrus.Debugf("rkecluster %s/%s: Reconciling rkeconfig against specified etcd restore snapshot metadata", obj.Namespace, obj.Name)
 			if !equality.Semantic.DeepEqual(rkeCP.Status.ETCDSnapshotRestore, obj.Spec.RKEConfig.ETCDSnapshotRestore) {
 				clusterSpec, err := h.findSnapshotClusterSpec(obj.Namespace, obj.Spec.RKEConfig.ETCDSnapshotRestore.Name)
@@ -325,7 +328,7 @@ func (h *handler) OnRancherClusterChange(obj *rancherv1.Cluster, status rancherv
 					return nil, status, err
 				}
 				switch obj.Spec.RKEConfig.ETCDSnapshotRestore.RestoreRKEConfig {
-				case rkev1.RestoreRKEConfigKubernetesVersion:
+				case restoreRKEConfigKubernetesVersion:
 					if obj.Spec.KubernetesVersion != clusterSpec.KubernetesVersion {
 						logrus.Infof("rkecluster %s/%s: restoring Kubernetes version from %s to %s for etcd snapshot restore (snapshot: %s)", obj.Namespace, obj.Name, obj.Spec.KubernetesVersion, clusterSpec.KubernetesVersion, obj.Spec.RKEConfig.ETCDSnapshotRestore.Name)
 						obj = obj.DeepCopy()
@@ -336,7 +339,7 @@ func (h *handler) OnRancherClusterChange(obj *rancherv1.Cluster, status rancherv
 						}
 						return nil, status, err
 					}
-				case rkev1.RestoreRKEConfigAll:
+				case restoreRKEConfigAll:
 					newCluster := obj.DeepCopy()
 					if reconcileClusterSpecEtcdRestore(newCluster, *clusterSpec) {
 						logrus.Infof("rkecluster %s/%s: restoring RKE config for etcd snapshot restore (snapshot: %s)", obj.Namespace, obj.Name, obj.Spec.RKEConfig.ETCDSnapshotRestore.Name)
@@ -382,7 +385,7 @@ func (h *handler) OnRancherClusterChange(obj *rancherv1.Cluster, status rancherv
 // an rkecontrolplane, or the rkecontrolplane object can't be found and the cluster is deleting, it returns nil, nil.
 func (h *handler) getRKEControlPlaneForCluster(cluster *rancherv1.Cluster) (*rkev1.RKEControlPlane, error) {
 	capiCluster, err := h.capiClusters.Get(cluster.Namespace, cluster.Name)
-	if apierrors.IsNotFound(err) {
+	if apierror.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -394,7 +397,7 @@ func (h *handler) getRKEControlPlaneForCluster(cluster *rancherv1.Cluster) (*rke
 	}
 
 	cp, err := h.rkeControlPlane.Get(capiCluster.Spec.ControlPlaneRef.Namespace, capiCluster.Spec.ControlPlaneRef.Name)
-	if apierrors.IsNotFound(err) && cluster.DeletionTimestamp != nil {
+	if apierror.IsNotFound(err) && cluster.DeletionTimestamp != nil {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -443,7 +446,7 @@ func (h *handler) OnRemove(_ string, cluster *rancherv1.Cluster) (*rancherv1.Clu
 	// controlplane to the object. If it does not exist, allow the v1 Cluster object to be removed.
 	mgmtCluster, err := h.retrieveMgmtClusterFromCache(cluster)
 	if err != nil {
-		if apierrors.IsNotFound(err) {
+		if apierror.IsNotFound(err) {
 			// go ahead and proceed with removal
 			return cluster, nil
 		}
@@ -451,7 +454,7 @@ func (h *handler) OnRemove(_ string, cluster *rancherv1.Cluster) (*rancherv1.Clu
 	}
 	if mgmtCluster != nil && reconcileCondition(mgmtCluster, capr.Removed, rkeCP, capr.Removed) {
 		_, err = h.mgmtClusterClient.Update(mgmtCluster)
-		if apierrors.IsNotFound(err) {
+		if apierror.IsNotFound(err) {
 			return cluster, nil
 		} else if err != nil {
 			return cluster, err
@@ -487,7 +490,7 @@ func triggerProvisioningClusterOnMachineDeploymentUpdate(clients *wrangler.CAPIC
 			}
 
 			cluster, err := capr.GetProvisioningClusterFromCAPICluster(capiCluster, clients.Provisioning.Cluster().Cache())
-			if apierrors.IsNotFound(err) || cluster == nil {
+			if errors.IsNotFound(err) || cluster == nil {
 				// if no v2prov cluster available - just return.
 				return []relatedresource.Key{}, nil
 			}

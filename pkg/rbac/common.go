@@ -52,7 +52,6 @@ const (
 	CrbGlobalRoleAnnotation             = "authz.cluster.cattle.io/globalrole"
 	CrbGlobalRoleBindingAnnotation      = "authz.cluster.cattle.io/globalrolebinding"
 	CrbAdminGlobalRoleCheckedAnnotation = "authz.cluster.cattle.io/admin-globalrole-checked"
-	AggregationFeatureLabel             = "management.cattle.io/roletemplate-aggregation"
 )
 
 // BuildSubjectFromRTB This function will generate
@@ -480,9 +479,8 @@ func BuildClusterRole(name, ownerName string, rules []rbacv1.PolicyRule) *rbacv1
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				AggregationLabel:        name,
-				ClusterRoleOwnerLabel:   ownerName,
-				AggregationFeatureLabel: "true",
+				AggregationLabel:      name,
+				ClusterRoleOwnerLabel: ownerName,
 			},
 		},
 		Rules: rules,
@@ -515,8 +513,7 @@ func BuildAggregatingClusterRole(rt *v3.RoleTemplate, nameTransformer func(strin
 				// Label so other cluster roles can aggregate this one
 				AggregationLabel: aggregatingCRName,
 				// Label to identify who owns this cluster role
-				ClusterRoleOwnerLabel:   ownerName,
-				AggregationFeatureLabel: "true",
+				ClusterRoleOwnerLabel: ownerName,
 			},
 		},
 		AggregationRule: &rbacv1.AggregationRule{
@@ -527,11 +524,7 @@ func BuildAggregatingClusterRole(rt *v3.RoleTemplate, nameTransformer func(strin
 
 // BuildAggregatingRoleBindingFromRTB returns a RoleBinding for a RTB. It is bound to the Aggregating ClusterRole.
 func BuildAggregatingRoleBindingFromRTB(rtb metav1.Object, roleRefName string) (*rbacv1.RoleBinding, error) {
-	rb, err := BuildRoleBindingFromRTB(rtb, AggregatedClusterRoleNameFor(roleRefName))
-	if rb != nil && rb.Labels != nil {
-		rb.Labels[AggregationFeatureLabel] = "true"
-	}
-	return rb, err
+	return BuildRoleBindingFromRTB(rtb, AggregatedClusterRoleNameFor(roleRefName))
 }
 
 // BuildRoleBindingFromRTB returns a RoleBinding for a RTB. It is bound to the ClusterRole specified by roleRefName.
@@ -570,11 +563,7 @@ func BuildRoleBindingFromRTB(rtb metav1.Object, roleRefName string) (*rbacv1.Rol
 
 // BuildAggregatingClusterRoleBindingFromRTB returns the ClusterRoleBinding needed for a RTB. It is bound to the Aggregating ClusterRole.
 func BuildAggregatingClusterRoleBindingFromRTB(rtb metav1.Object, roleRefName string) (*rbacv1.ClusterRoleBinding, error) {
-	crb, err := BuildClusterRoleBindingFromRTB(rtb, AggregatedClusterRoleNameFor(roleRefName))
-	if crb != nil && crb.Labels != nil {
-		crb.Labels[AggregationFeatureLabel] = "true"
-	}
-	return crb, err
+	return BuildClusterRoleBindingFromRTB(rtb, AggregatedClusterRoleNameFor(roleRefName))
 }
 
 // BuildClusterRoleBindingFromRTB returns the ClusterRoleBinding needed for a RTB. It is bound to the ClusterRole specified by roleRefName.
@@ -616,10 +605,10 @@ func AreClusterRoleBindingContentsSame(crb1, crb2 *rbacv1.ClusterRoleBinding) bo
 		equality.Semantic.DeepEqual(crb1.RoleRef, crb2.RoleRef)
 }
 
-// AreRoleBindingsSame compares the Subjects and RoleRef fields of two Role Bindings.
-func AreRoleBindingContentsSame(rb1, rb2 *rbacv1.RoleBinding) bool {
+// AreRoleBindingsSame compares the Subjects and RoleRef fields of two Cluster Role Bindings.
+func AreRoleBindingContentsSame(rb1, rb2 *rbacv1.RoleBinding) (bool, *rbacv1.RoleBinding) {
 	return equality.Semantic.DeepEqual(rb1.Subjects, rb2.Subjects) &&
-		equality.Semantic.DeepEqual(rb1.RoleRef, rb2.RoleRef)
+		equality.Semantic.DeepEqual(rb1.RoleRef, rb2.RoleRef), rb2
 }
 
 // ClusterRoleNameFor returns safe version of a string to be used for a clusterRoleName

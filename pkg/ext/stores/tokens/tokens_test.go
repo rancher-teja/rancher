@@ -155,19 +155,21 @@ var (
 		},
 	}
 
-	errSomeError           = fmt.Errorf("bogus")
-	errAuthProviderMissing = fmt.Errorf("auth provider missing")
-	errHashMissing         = fmt.Errorf("token hash missing")
-	errKubeIDMissing       = fmt.Errorf("kube uid missing")
-	errLastUpdateMissing   = fmt.Errorf("last update time missing")
-	errPrincipalIDMissing  = fmt.Errorf("principal id missing")
-	errUserIDMissing       = fmt.Errorf("user id missing")
-	errInvalidContext      = fmt.Errorf("context has no user info")
+	someerror                = fmt.Errorf("bogus")
+	authProviderMissingError = fmt.Errorf("auth provider missing")
+	hashMissingError         = fmt.Errorf("token hash missing")
+	kubeIDMissingError       = fmt.Errorf("kube uid missing")
+	lastUpdateMissingError   = fmt.Errorf("last update time missing")
+	principalIDMissingError  = fmt.Errorf("principal id missing")
+	userIDMissingError       = fmt.Errorf("user id missing")
+	invalidContext           = fmt.Errorf("context has no user info")
 
-	bogusNotFoundError      = apierrors.NewNotFound(GVR.GroupResource(), "bogus")
-	emptyNotFoundError      = apierrors.NewNotFound(GVR.GroupResource(), "")
-	createUserMismatch      = apierrors.NewBadRequest("unable to create token for other user")
-	helloAlreadyExistsError = apierrors.NewAlreadyExists(GVR.GroupResource(), "hello")
+	bogusNotFoundError       = apierrors.NewNotFound(GVR.GroupResource(), "bogus")
+	emptyNotFoundError       = apierrors.NewNotFound(GVR.GroupResource(), "")
+	createUserMismatch       = apierrors.NewBadRequest("unable to create token for other user")
+	helloAlreadyExistsError  = apierrors.NewAlreadyExists(GVR.GroupResource(), "hello")
+	invalidNameError         = apierrors.NewBadRequest("Token is invalid: metadata.name: Locked by system. Do not set.")
+	invalidGenerateNameError = apierrors.NewBadRequest("Token is invalid: metadata.generateName: Locked by system. Do not set.")
 
 	parseBoolError error
 	parseIntError  error
@@ -342,14 +344,14 @@ func TestStoreDelete(t *testing.T) {
 		users.EXPECT().Cache().Return(nil)
 		secrets.EXPECT().Cache().Return(nil)
 		secrets.EXPECT().Get("cattle-tokens", "bogus", gomock.Any()).
-			Return(nil, errSomeError)
+			Return(nil, someerror)
 
 		store := New(nil, nil, nil, secrets, users, nil, nil, nil, nil, auth)
 		_, ok, err := store.Delete(context.TODO(), "bogus", nil, &metav1.DeleteOptions{})
 
 		assert.False(t, ok)
 		assert.Equal(t, apierrors.NewInternalError(fmt.Errorf("failed to retrieve token bogus: %w",
-			errSomeError)), err)
+			someerror)), err)
 	})
 
 	t.Run("failed to get secret, not found", func(t *testing.T) {
@@ -380,14 +382,14 @@ func TestStoreDelete(t *testing.T) {
 
 		users.EXPECT().Cache().Return(nil)
 		auth.EXPECT().UserName(gomock.Any(), gomock.Any(), gomock.Any()).
-			Return(&mockUser{name: ""}, false, false, apierrors.NewInternalError(errInvalidContext))
+			Return(&mockUser{name: ""}, false, false, apierrors.NewInternalError(invalidContext))
 		secrets.EXPECT().Cache().Return(nil)
 
 		store := New(nil, nil, nil, secrets, users, nil, nil, nil, nil, auth)
 		_, ok, err := store.Delete(context.TODO(), "bogus", nil, &metav1.DeleteOptions{})
 
 		assert.False(t, ok)
-		assert.Equal(t, apierrors.NewInternalError(errInvalidContext), err)
+		assert.Equal(t, apierrors.NewInternalError(invalidContext), err)
 	})
 
 	t.Run("not owned, no permission, not found", func(t *testing.T) {
@@ -632,7 +634,7 @@ func TestStoreWatch(t *testing.T) {
 		users.EXPECT().Cache().Return(nil)
 		secrets.EXPECT().Cache().Return(nil)
 		secrets.EXPECT().Watch("cattle-tokens", gomock.Any()).
-			Return(nil, errSomeError)
+			Return(nil, someerror)
 
 		auth.EXPECT().UserName(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(&mockUser{name: properUser}, false, true, nil)
@@ -1016,7 +1018,7 @@ func TestStoreCreate(t *testing.T) {
 		// token generation and hash errors -- no mocking -- unable to induce and test
 		{
 			name: "user retrieval error",
-			err:  apierrors.NewInternalError(fmt.Errorf("failed to retrieve user world: %w", errSomeError)),
+			err:  apierrors.NewInternalError(fmt.Errorf("failed to retrieve user world: %w", someerror)),
 			tok: &ext.Token{
 				Spec: ext.TokenSpec{
 					UserID: "world",
@@ -1038,7 +1040,7 @@ func TestStoreCreate(t *testing.T) {
 					Return(&mockUser{name: "world"}, false, true, nil)
 
 				users.EXPECT().Get("world").
-					Return(nil, errSomeError)
+					Return(nil, someerror)
 			},
 		},
 		{
@@ -1097,9 +1099,9 @@ func TestStoreCreate(t *testing.T) {
 				auth.EXPECT().SessionID(gomock.Any()).
 					Return("session-token", nil)
 				token.EXPECT().Get("session-token").
-					Return(nil, errSomeError)
+					Return(nil, someerror)
 				scache.EXPECT().Get("cattle-tokens", "session-token").
-					Return(nil, errSomeError)
+					Return(nil, someerror)
 
 				users.EXPECT().Get("world").
 					Return(enabledUser, nil)
@@ -1107,7 +1109,7 @@ func TestStoreCreate(t *testing.T) {
 		},
 		{
 			name: "generation or hash error",
-			err:  errSomeError,
+			err:  someerror,
 			tok: &ext.Token{
 				Spec: ext.TokenSpec{
 					UserID: "world",
@@ -1141,12 +1143,12 @@ func TestStoreCreate(t *testing.T) {
 					Return(enabledUser, nil)
 
 				hasher.EXPECT().MakeAndHashSecret().
-					Return("", "", errSomeError)
+					Return("", "", someerror)
 			},
 		},
 		{
 			name: "failed to create secret - some error",
-			err:  apierrors.NewInternalError(fmt.Errorf("failed to store token: %w", errSomeError)),
+			err:  apierrors.NewInternalError(fmt.Errorf("failed to store token: %w", someerror)),
 			tok: &ext.Token{
 				Spec: ext.TokenSpec{
 					UserID: "world",
@@ -1190,7 +1192,7 @@ func TestStoreCreate(t *testing.T) {
 				timer.EXPECT().Now().Return("this is a fake now")
 
 				secrets.EXPECT().Create(gomock.Any()).
-					Return(nil, errSomeError)
+					Return(nil, someerror)
 			},
 		},
 		{
@@ -1244,7 +1246,7 @@ func TestStoreCreate(t *testing.T) {
 		},
 		{
 			name: "created secret reads back as bogus",
-			err:  apierrors.NewInternalError(fmt.Errorf("failed to regenerate token bogus: %w", errUserIDMissing)),
+			err:  apierrors.NewInternalError(fmt.Errorf("failed to regenerate token bogus: %w", userIDMissingError)),
 			tok: &ext.Token{
 				Spec: ext.TokenSpec{
 					UserID: "world",
@@ -1413,12 +1415,12 @@ func TestSystemStoreList(t *testing.T) {
 			name: "some arbitrary error",
 			user: "",
 			opts: &metav1.ListOptions{},
-			err:  apierrors.NewInternalError(fmt.Errorf("failed to list tokens: %w", errSomeError)),
+			err:  apierrors.NewInternalError(fmt.Errorf("failed to list tokens: %w", someerror)),
 			toks: nil,
 			storeSetup: func(secrets *fake.MockControllerInterface[*corev1.Secret, *corev1.SecretList]) {
 				secrets.EXPECT().
 					List("cattle-tokens", gomock.Any()).
-					Return(nil, errSomeError)
+					Return(nil, someerror)
 			},
 		},
 		{
@@ -1582,11 +1584,11 @@ func TestSystemStoreDelete(t *testing.T) {
 			name:  "secret other error is fail",
 			token: "bogus",
 			opts:  &metav1.DeleteOptions{},
-			err:   apierrors.NewInternalError(fmt.Errorf("failed to delete token bogus: %w", errSomeError)),
+			err:   apierrors.NewInternalError(fmt.Errorf("failed to delete token bogus: %w", someerror)),
 			storeSetup: func(secrets *fake.MockControllerInterface[*corev1.Secret, *corev1.SecretList]) {
 				secrets.EXPECT().
 					Delete("cattle-tokens", "bogus", gomock.Any()).
-					Return(errSomeError)
+					Return(someerror)
 			},
 		},
 		{
@@ -1966,9 +1968,9 @@ func TestSystemStoreUpdate(t *testing.T) {
 				// Update: Fail
 				secrets.EXPECT().
 					Update(gomock.Any()).
-					Return(nil, errSomeError)
+					Return(nil, someerror)
 			},
-			err: apierrors.NewInternalError(fmt.Errorf("failed to save updated token: %w", errSomeError)),
+			err: apierrors.NewInternalError(fmt.Errorf("failed to save updated token: %w", someerror)),
 		},
 		{
 			name:     "read back broken data after update",
@@ -1998,7 +2000,7 @@ func TestSystemStoreUpdate(t *testing.T) {
 					Update(gomock.Any()).
 					Return(reduced, nil)
 			},
-			err: apierrors.NewInternalError(fmt.Errorf("failed to regenerate token: %w", errUserIDMissing)),
+			err: apierrors.NewInternalError(fmt.Errorf("failed to regenerate token: %w", userIDMissingError)),
 		},
 		{
 			name:     "ok",
@@ -2108,12 +2110,12 @@ func TestSystemStoreGet(t *testing.T) {
 			storeSetup: func(secrets *fake.MockCacheInterface[*corev1.Secret]) {
 				secrets.EXPECT().
 					Get("cattle-tokens", "bogus").
-					Return(nil, errSomeError)
+					Return(nil, someerror)
 			},
 			tokname: "bogus",
 			opts:    &metav1.GetOptions{},
 			err: apierrors.NewInternalError(fmt.Errorf("failed to retrieve token %s: %w", "bogus",
-				errSomeError)),
+				someerror)),
 			tok: nil,
 		},
 		{
@@ -2170,7 +2172,7 @@ func TestSystemStoreGet(t *testing.T) {
 			},
 			tokname: "bogus",
 			opts:    &metav1.GetOptions{},
-			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", errHashMissing)),
+			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", hashMissingError)),
 			tok:     nil,
 		},
 		{
@@ -2188,7 +2190,7 @@ func TestSystemStoreGet(t *testing.T) {
 			},
 			tokname: "bogus",
 			opts:    &metav1.GetOptions{},
-			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", errAuthProviderMissing)),
+			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", authProviderMissingError)),
 			tok:     nil,
 		},
 		{
@@ -2204,7 +2206,7 @@ func TestSystemStoreGet(t *testing.T) {
 			},
 			tokname: "bogus",
 			opts:    &metav1.GetOptions{},
-			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", errLastUpdateMissing)),
+			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", lastUpdateMissingError)),
 			tok:     nil,
 		},
 		{
@@ -2222,7 +2224,7 @@ func TestSystemStoreGet(t *testing.T) {
 			},
 			tokname: "bogus",
 			opts:    &metav1.GetOptions{},
-			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", errPrincipalIDMissing)),
+			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", principalIDMissingError)),
 			tok:     nil,
 		},
 		{
@@ -2237,7 +2239,7 @@ func TestSystemStoreGet(t *testing.T) {
 			},
 			tokname: "bogus",
 			opts:    &metav1.GetOptions{},
-			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", errKubeIDMissing)),
+			err:     apierrors.NewInternalError(fmt.Errorf("failed to extract token %s: %w", "bogus", kubeIDMissingError)),
 			tok:     nil,
 		},
 		{

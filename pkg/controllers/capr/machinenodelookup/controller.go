@@ -3,6 +3,7 @@ package machinenodelookup
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -29,6 +30,10 @@ import (
 
 const (
 	nodeErrorEnqueueTime = 15 * time.Second
+)
+
+var (
+	bootstrapAPIVersion = fmt.Sprintf("%s/%s", rkev1.SchemeGroupVersion.Group, rkev1.SchemeGroupVersion.Version)
 )
 
 type handler struct {

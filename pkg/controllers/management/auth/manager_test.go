@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -734,7 +735,7 @@ func Test_gatherAndDedupeRoles(t *testing.T) {
 			wantErr:          false,
 			want: map[string]*v3.RoleTemplate{
 				"non-recursive": {
-					ObjectMeta: v1.ObjectMeta{
+					ObjectMeta: metav1.ObjectMeta{
 						Name: "non-recursive",
 					},
 				},
@@ -750,18 +751,18 @@ func Test_gatherAndDedupeRoles(t *testing.T) {
 			roleTemplateName: "rolewithdupes",
 			want: map[string]*v3.RoleTemplate{
 				"rolewithdupes": {
-					ObjectMeta: v1.ObjectMeta{
+					ObjectMeta: metav1.ObjectMeta{
 						Name: "rolewithdupes",
 					},
 					RoleTemplateNames: []string{"rt1", "rt2", "rt1"},
 				},
 				"rt1": {
-					ObjectMeta: v1.ObjectMeta{
+					ObjectMeta: metav1.ObjectMeta{
 						Name: "rt1",
 					},
 				},
 				"rt2": {
-					ObjectMeta: v1.ObjectMeta{
+					ObjectMeta: metav1.ObjectMeta{
 						Name: "rt2",
 					},
 				},
@@ -779,14 +780,14 @@ func Test_gatherAndDedupeRoles(t *testing.T) {
 						}
 						if name == "rolewithdupes" {
 							return &v3.RoleTemplate{
-								ObjectMeta: v1.ObjectMeta{
+								ObjectMeta: metav1.ObjectMeta{
 									Name: "rolewithdupes",
 								},
 								RoleTemplateNames: []string{"rt1", "rt2", "rt1"},
 							}, nil
 						}
 						return &v3.RoleTemplate{
-							ObjectMeta: v1.ObjectMeta{
+							ObjectMeta: metav1.ObjectMeta{
 								Name: name,
 							},
 						}, nil
@@ -807,19 +808,19 @@ func Test_gatherAndDedupeRoles(t *testing.T) {
 func Test_gatherRoleTemplates(t *testing.T) {
 	roleTemplates := map[string]*v3.RoleTemplate{
 		"root": {
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name: "root",
 			},
 			RoleTemplateNames: []string{"child1"},
 		},
 		"child1": {
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name: "child1",
 			},
 			RoleTemplateNames: []string{"child2"},
 		},
 		"child2": {
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name: "child2",
 			},
 			RoleTemplateNames: []string{},
@@ -855,7 +856,7 @@ func Test_gatherRoleTemplates(t *testing.T) {
 			manager := &manager{
 				rtLister: &fakes.RoleTemplateListerMock{
 					GetFunc: func(namespace, name string) (*v3.RoleTemplate, error) {
-						rt := roleTemplates[name]
+						rt, _ := roleTemplates[name]
 						if tt.wantErr {
 							return nil, fmt.Errorf("RoleTemplate not found")
 						}

@@ -9,6 +9,7 @@ import (
 	"github.com/rancher/norman/httperror"
 	"github.com/rancher/norman/types"
 	"github.com/rancher/norman/types/convert"
+	client "github.com/rancher/rancher/pkg/client/generated/project/v3"
 	projectclient "github.com/rancher/rancher/pkg/client/generated/project/v3"
 	"github.com/rancher/rancher/pkg/types/config"
 	"github.com/sirupsen/logrus"
@@ -115,7 +116,7 @@ func (a *AggregateStore) List(apiContext *types.APIContext, schema *types.Schema
 
 func (a *AggregateStore) Create(apiContext *types.APIContext, schema *types.Schema, data map[string]interface{}) (map[string]interface{}, error) {
 	// deployment is default if otherwise is not specified
-	kind := projectclient.DeploymentType
+	kind := client.DeploymentType
 	toSchema := a.Schemas[kind]
 	toStore := a.Stores[kind]
 	for field, schemaID := range a.FieldToSchemaID {
@@ -137,7 +138,11 @@ func store(registries map[string]projectclient.RegistryCredential, domainToCreds
 			continue
 		}
 		secretRef := corev1.LocalObjectReference{Name: name}
-		domainToCreds[rd] = append(domainToCreds[rd], secretRef)
+		if _, ok := domainToCreds[rd]; ok {
+			domainToCreds[rd] = append(domainToCreds[rd], secretRef)
+		} else {
+			domainToCreds[rd] = []corev1.LocalObjectReference{secretRef}
+		}
 	}
 }
 

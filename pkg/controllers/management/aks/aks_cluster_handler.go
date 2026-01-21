@@ -128,7 +128,7 @@ func (e *aksOperatorController) onClusterChange(_ string, cluster *apimgmtv3.Clu
 
 	// get aks Cluster Config's phase
 	status, _ := aksClusterConfigDynamic.Object["status"].(map[string]interface{})
-	phase := status["phase"]
+	phase, _ := status["phase"]
 	failureMessage, _ := status["failureMessage"].(string)
 
 	switch phase {
@@ -293,7 +293,7 @@ func (e *aksOperatorController) updateAKSClusterConfig(cluster *apimgmtv3.Cluste
 		return cluster, err
 	}
 	aksClusterConfigDynamic.Object["spec"] = spec
-	_, err = e.DynamicClient.Namespace(namespace.GlobalNamespace).Update(context.TODO(), aksClusterConfigDynamic, v1.UpdateOptions{})
+	aksClusterConfigDynamic, err = e.DynamicClient.Namespace(namespace.GlobalNamespace).Update(context.TODO(), aksClusterConfigDynamic, v1.UpdateOptions{})
 	if err != nil {
 		return cluster, err
 	}

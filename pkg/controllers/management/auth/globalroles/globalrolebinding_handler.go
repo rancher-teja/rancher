@@ -643,9 +643,11 @@ func (l *globalRoleBindingLifecycle) updateStatus(grb *apisv3.GlobalRoleBinding,
 		grbFromCluster.Status.LastUpdateTime = l.status.TimeNow().Format(time.RFC3339)
 		grbFromCluster.Status.ObservedGenerationLocal = grb.ObjectMeta.Generation
 		grbFromCluster.Status.LocalConditions = localConditions
-		_, err = l.grbClient.UpdateStatus(grbFromCluster)
-
-		return err
+		grbFromCluster, err = l.grbClient.UpdateStatus(grbFromCluster)
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 }
 

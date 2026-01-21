@@ -198,7 +198,8 @@ func (g *githubAppClient) postToGithub(ctx context.Context, url string, form url
 	case 200:
 	case 201:
 	default:
-		return nil, fmt.Errorf("request failed, got status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("request failed, got status code: %d. Response: %s",
+			resp.StatusCode, body)
 	}
 
 	return body, nil
@@ -229,7 +230,8 @@ func (g *githubAppClient) getFromGithub(ctx context.Context, githubAccessToken s
 	case 200:
 	case 201:
 	default:
-		return nil, "", fmt.Errorf("request failed, got status code: %d", resp.StatusCode)
+		return nil, "", fmt.Errorf("request failed, got status code: %d. Response: %s",
+			resp.StatusCode, body)
 	}
 	nextURL := g.nextGithubPage(resp)
 

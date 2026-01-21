@@ -207,7 +207,7 @@ func up(token string, port int, config *compose.Config) error {
 			if !ok {
 				break
 			}
-			_, err = configManager.ConfigBaseClient(schemaKey, dataMap, referenceMap, "")
+			baseClient, err = configManager.ConfigBaseClient(schemaKey, dataMap, referenceMap, "")
 			if err != nil {
 				return err
 			}
@@ -255,10 +255,11 @@ func up(token string, port int, config *compose.Config) error {
 				} else if err != nil && strings.Contains(err.Error(), "already exist") {
 					break
 				}
-				_, ok := respObj["id"]
+				v, ok := respObj["id"]
 				if !ok {
 					return errors.Errorf("id is missing after creating %s obj", schemaKey)
 				}
+				id = v.(string)
 			}
 		}
 		// fill in reference map name -> id
