@@ -611,7 +611,7 @@ func getMetadataConfig() string {
 	branch := "dev-v2.14"
 	data := map[string]interface{}{
 		// "url":                      fmt.Sprintf("https://releases.rancher.com/kontainer-driver-metadata/%s/data.json", branch),
-		"url":                      fmt.Sprintf("https://raw.githubusercontent.com/rancher-teja/kontainer-driver-metadata/%s/data/data.json", branch),
+		"url":                      fmt.Sprintf("https://raw.githubusercontent.com/iYashMaurya/kontainer-driver-metadata/%s/data/data.json", branch),
 		"refresh-interval-minutes": "1440",
 	}
 	ans, err := json.Marshal(data)
