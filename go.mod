@@ -10,6 +10,9 @@ replace (
 
 	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v1.13.0-rc.1.0.20260423111528-6a01d0f0f885
 	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v1.13.0-rc.1.0.20260423115145-0fd357e607e7
+	github.com/rancher/apiserver => github.com/rancher-teja/apiserver v0.9.3-0.20260423061508-9e6e2deeeef5
+	github.com/rancher/channelserver => github.com/rancher-teja/channelserver v0.0.0-20260505045720-b7bda641748d
+	github.com/rancher/dynamiclistener => github.com/rancher-teja/dynamiclistener v0.8.2-0.20260423063550-4685e82df586
 	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v1.14.0-rc.1.0.20260423110630-56eb3869fd83
 	github.com/rancher/fleet/pkg/apis => github.com/rancher-teja/fleet/pkg/apis v0.15.0-beta.4.0.20260424065906-b7daa22e23df
 	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v1.14.0-rc.1.0.20260423112612-653f269fbae5
@@ -250,6 +253,8 @@ require (
 	github.com/google/go-github/v72 v72.0.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.14 // indirect
+	github.com/gorilla/handlers v1.5.2 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7 // indirect
@@ -417,7 +422,7 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/term v0.42.0 // indirect
-	golang.org/x/time v0.15.0 // indirect
+	golang.org/x/time v0.15.0
 	golang.org/x/tools v0.44.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
