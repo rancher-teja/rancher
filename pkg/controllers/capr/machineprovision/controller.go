@@ -406,7 +406,7 @@ func (h *handler) OnRemove(key string, obj runtime.Object) (runtime.Object, erro
 	}
 
 	machine, err := capr.GetOwnerCAPIMachine(obj, h.machineCache)
-	if err != nil && !errors.Is(err, capr.ErrNoMatchingControllerOwnerRef) && !apierrors.IsNotFound(err) {
+	if err != nil && !errors.Is(err, capr.ErrNoMatchingControllerOwnerRef) && !apierrors.IsNotFound(err) && !strings.Contains(err.Error(), "no matching controller owner ref") {
 		logrus.Errorf("[machineprovision] %s/%s: error getting machine by owner reference: %v", infra.meta.GetNamespace(), infra.meta.GetName(), err)
 		return obj, err
 	}
