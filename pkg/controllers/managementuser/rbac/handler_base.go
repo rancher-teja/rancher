@@ -681,7 +681,6 @@ func (g *globalRoleEnqueuer) namespaceEnqueueGRs(_, name string, obj runtime.Obj
 	if !ok {
 		return nil, fmt.Errorf("[%s]: failed to convert object to *Namespace", grByNamespaceEnqueuer)
 	}
-
 	grs, err := g.grLister.GetByIndex(pkgrbac.GRDownstreamNSIndex, ns.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list GlobalRoles for namespace %s: %w", ns.Name, err)
