@@ -8,25 +8,24 @@ replace (
 	github.com/knative/pkg => github.com/rancher/pkg v0.0.0-20190514055449-b30ab9de040e
 	github.com/matryer/moq => github.com/rancher/moq v0.0.0-20200712062324-13d1f37d2d77
 
-	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v1.13.0-rc.1.0.20260423111528-6a01d0f0f885
-	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v1.13.0-rc.1.0.20260423115145-0fd357e607e7
-	github.com/rancher/apiserver => github.com/rancher-teja/apiserver v0.9.3-0.20260423061508-9e6e2deeeef5
-	github.com/rancher/channelserver => github.com/rancher-teja/channelserver v0.0.0-20260505045720-b7bda641748d
-	github.com/rancher/dynamiclistener => github.com/rancher-teja/dynamiclistener v0.8.2-0.20260423063550-4685e82df586
-	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v1.14.0-rc.1.0.20260423110630-56eb3869fd83
-	github.com/rancher/fleet/pkg/apis => github.com/rancher-teja/fleet/pkg/apis v0.15.0-beta.4.0.20260424065906-b7daa22e23df
-	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v1.14.0-rc.1.0.20260423112612-653f269fbae5
-	github.com/rancher/lasso => github.com/rancher-teja/lasso v0.2.9-0.20260423044910-f3dbd8f8eeaa
-	github.com/rancher/machine => github.com/rancher-teja/machine v0.15.1-0.20260423095219-e6d229233875
-	github.com/rancher/norman => github.com/rancher-teja/norman v0.9.3-0.20260423064226-5e6ff046a71a
+	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v1.13.0-rc.1.0.20260506102828-d2c5e80a5223
+	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v1.13.0-rc.1.0.20260506095922-b7708fdb3b3e
+	github.com/rancher/apiserver => github.com/rancher-teja/apiserver v0.9.3-0.20260505142445-469fb9388100
+	github.com/rancher/channelserver => github.com/rancher-teja/channelserver v0.0.0-20260505175051-f840b7c0d727
+	github.com/rancher/dynamiclistener => github.com/rancher-teja/dynamiclistener v0.8.2-0.20260505182416-084d2941d5b6
+	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v1.14.0-rc.1.0.20260506090247-a9c11ffb810f
+	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v1.14.0-rc.1.0.20260506092726-5ac4d5aeee7b
+	github.com/rancher/lasso => github.com/Abhishek-Valaboju/lasso v0.2.9-0.20260505081514-7d93f2343c4e
+	github.com/rancher/machine => github.com/rancher-teja/machine v0.15.1-0.20260505180151-571d4edd18a5
+	github.com/rancher/norman => github.com/rancher-teja/norman v0.9.3-0.20260505143155-552e07ef956f
 	github.com/rancher/rancher/pkg/apis => ./pkg/apis
 	github.com/rancher/rancher/pkg/client => ./pkg/client
-	github.com/rancher/remotedialer-proxy => github.com/rancher-teja/remotedialer-proxy v0.8.0-rc.2.0.20260424043854-0687013774b4
+	github.com/rancher/remotedialer-proxy => github.com/rancher-teja/remotedialer-proxy v0.8.0-rc.2.0.20260506040615-37a26d1c0c7f
 	github.com/rancher/rke => github.com/rancher-teja/rke v1.8.14-0.20260423104215-3916aa7c88c6
-	github.com/rancher/shepherd => github.com/rancher-teja/shepherd v0.0.0-20260427063602-6c79cb670f82
-	github.com/rancher/steve => github.com/rancher-teja/steve v0.8.8-0.20260429032412-1895b889c7a8
-	github.com/rancher/system-upgrade-controller/pkg/apis => github.com/rancher-teja/system-upgrade-controller/pkg/apis v0.0.0-20260427062237-daa7c4ae1336
-	github.com/rancher/wrangler/v3 => github.com/rancher-teja/wrangler/v3 v3.6.0-rc.1.0.20260423053950-42de455630a4
+	github.com/rancher/shepherd => github.com/rancher-teja/shepherd v0.0.0-20260506154828-3692ae3d9ba7
+	github.com/rancher/steve => github.com/rancher-teja/steve v0.8.8-0.20260506081201-ce800587dbfc
+	github.com/rancher/system-upgrade-controller/pkg/apis => github.com/rancher-teja/system-upgrade-controller/pkg/apis v0.0.0-20260506055111-0f536b21d101
+	github.com/rancher/wrangler/v3 => github.com/rancher-teja/wrangler/v3 v3.6.0-rc.1.0.20260505124441-a4e31e7c8b59
 	github.com/stretchr/testify => github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc => go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp => go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0
@@ -69,7 +68,7 @@ replace (
 	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.36.0
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.36.0
 	oras.land/oras-go => oras.land/oras-go v1.2.2 // for docker 20.10.x compatibility
-	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.23.1-0.20260424122448-c8b4b9d61fbd
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.24.0
 )
 
 require (
@@ -143,7 +142,7 @@ require (
 	github.com/rancher/norman v0.9.1
 	github.com/rancher/rancher/pkg/apis v0.0.0-20251107181200-efcbd5d43f4e
 	github.com/rancher/rancher/pkg/client v0.0.0
-	github.com/rancher/remotedialer v0.6.1-rc.1
+	github.com/rancher/remotedialer v0.6.1
 	github.com/rancher/remotedialer-proxy v0.7.0-rc.5
 	github.com/rancher/rke v1.8.0
 	github.com/rancher/shepherd v0.0.0-00010101000000-000000000000
@@ -185,7 +184,7 @@ require (
 	oras.land/oras-go/v2 v2.6.0
 	sigs.k8s.io/aws-iam-authenticator v0.6.17
 	sigs.k8s.io/cluster-api v1.12.2
-	sigs.k8s.io/controller-runtime v0.23.3
+	sigs.k8s.io/controller-runtime v0.24.0
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -253,8 +252,6 @@ require (
 	github.com/google/go-github/v72 v72.0.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.14 // indirect
-	github.com/gorilla/handlers v1.5.2 // indirect
-	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7 // indirect
@@ -301,10 +298,10 @@ require (
 	k8s.io/gengo/v2 v2.0.0-20250922181213-ec3ebc5fd46b // indirect
 	k8s.io/kms v0.36.0 // indirect
 	k8s.io/streaming v0.36.0 // indirect
-	modernc.org/libc v1.70.0 // indirect
+	modernc.org/libc v1.72.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.48.2 // indirect
+	modernc.org/sqlite v1.50.0 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.2 // indirect
 )
