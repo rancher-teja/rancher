@@ -3,14 +3,14 @@ module github.com/rancher/rancher/pkg/apis
 go 1.26.0
 
 replace (
-	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v1.13.0-rc.1.0.20260423111528-6a01d0f0f885
-	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v1.13.0-rc.1.0.20260423115145-0fd357e607e7
-	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v1.14.0-rc.1.0.20260423110630-56eb3869fd83
-	github.com/rancher/fleet/pkg/apis => github.com/rancher-teja/fleet/pkg/apis v0.15.0-beta.4.0.20260424065906-b7daa22e23df
-	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v1.14.0-rc.1.0.20260423112612-653f269fbae5
-	github.com/rancher/norman => github.com/rancher-teja/norman v0.9.3-0.20260423064226-5e6ff046a71a
+	github.com/rancher/aks-operator => github.com/rancher-teja/aks-operator v1.13.0-rc.1.0.20260506102828-d2c5e80a5223
+	github.com/rancher/ali-operator => github.com/rancher-teja/ali-operator v1.13.0-rc.1.0.20260506095922-b7708fdb3b3e
+	github.com/rancher/eks-operator => github.com/rancher-teja/eks-operator v1.14.0-rc.1.0.20260506090247-a9c11ffb810f
+	github.com/rancher/gke-operator => github.com/rancher-teja/gke-operator v1.14.0-rc.1.0.20260506092726-5ac4d5aeee7b
+	github.com/rancher/lasso => github.com/Abhishek-Valaboju/lasso v0.2.9-0.20260505081514-7d93f2343c4e
+	github.com/rancher/norman => github.com/rancher-teja/norman v0.9.3-0.20260505143155-552e07ef956f
 	github.com/rancher/rke => github.com/rancher-teja/rke v1.8.14-0.20260423104215-3916aa7c88c6
-	github.com/rancher/wrangler/v3 => github.com/rancher-teja/wrangler/v3 v3.6.0-rc.1.0.20260423053950-42de455630a4
+	github.com/rancher/wrangler/v3 => github.com/rancher-teja/wrangler/v3 v3.6.0-rc.1.0.20260505124441-a4e31e7c8b59
 	k8s.io/api => k8s.io/api v0.36.0
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.36.0
 	k8s.io/apimachinery => k8s.io/apimachinery v0.36.0
