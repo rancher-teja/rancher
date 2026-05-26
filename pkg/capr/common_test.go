@@ -191,6 +191,27 @@ func TestFindOwnerCAPICluster(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:        "CAPI v1.13.1+ compatibility (no controller flag)",
+			expected:    nil,
+			expectedErr: nil,
+			obj: &rkev1.RKECluster{
+				TypeMeta: metav1.TypeMeta{
+					Kind: "RKECluster",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "testcluster",
+					Namespace: "testnamespace",
+					OwnerReferences: []metav1.OwnerReference{
+						{
+							Kind:       "Cluster",
+							APIVersion: "cluster.x-k8s.io/v1beta2",
+							// Note: Controller flag is intentionally not set, simulating CAPI v1.13.1+ behavior
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
