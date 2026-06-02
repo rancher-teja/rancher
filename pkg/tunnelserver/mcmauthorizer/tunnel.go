@@ -7,8 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	v32 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
@@ -16,6 +18,7 @@ import (
 	corev1 "github.com/rancher/rancher/pkg/generated/norman/core/v1"
 	"github.com/rancher/rancher/pkg/kontainerdriver"
 	"github.com/rancher/rancher/pkg/namespace"
+	"github.com/rancher/rancher/pkg/utils"
 
 	"github.com/rancher/norman/types/convert"
 	client "github.com/rancher/rancher/pkg/client/generated/management/v3"
@@ -297,7 +300,8 @@ func (t *Authorizer) authorizeCluster(cluster *v3.Cluster, inCluster *cluster, r
 		}
 	}
 
-	apiEndpoint := "https://" + inCluster.Address
+	// apiEndpoint := "https://" + inCluster.Address
+	apiEndpoint := buildClusterAPIEndpoint(inCluster.Address)
 	token := inCluster.Token
 	caCert := inCluster.CACert
 
@@ -418,4 +422,39 @@ func (t *Authorizer) toCustomConfig(machine *client.Node) *v32.CustomConfig {
 		return nil
 	}
 	return result
+}
+
+func buildClusterAPIEndpoint(address string) string {
+	return "https://" + normalizeAddressForEndpoint(address)
+}
+
+func normalizeAddressForEndpoint(address string) string {
+	address = strings.TrimSpace(address)
+
+	// Handles: [ipv6]:port, ipv4:port, hostname:port
+	// Must come before plain IPv6 check so bracketed forms are handled first.
+	if host, port, err := net.SplitHostPort(address); err == nil {
+		return net.JoinHostPort(host, port)
+	}
+
+	// Handles unbracketed IPv6 with port: 2001:cafe:43::1:443
+	// Try splitting on the last colon; if the left part is a valid plain IPv6
+	// and the right part is a valid port number, treat it as host:port.
+	if strings.Contains(address, ":") && !strings.HasPrefix(address, "[") {
+		lastColon := strings.LastIndex(address, ":")
+		if lastColon > 0 {
+			hostPart := address[:lastColon]
+			portPart := address[lastColon+1:]
+			if _, err := strconv.Atoi(portPart); err == nil && utils.IsPlainIPV6(hostPart) {
+				return net.JoinHostPort(hostPart, portPart)
+			}
+		}
+	}
+
+	// Plain IPv6 with no port: 2001:cafe:43::1  →  [2001:cafe:43::1]
+	if utils.IsPlainIPV6(address) {
+		return "[" + address + "]"
+	}
+
+	return address
 }
