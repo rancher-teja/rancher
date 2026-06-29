@@ -309,13 +309,32 @@ func listFolders(ctx context.Context, finder *find.Finder, dc string) ([]string,
 	prefix := path.Join(dc, "vm")
 	// base case of /<datacenter>/vm is covered by ""
 	data := []string{""}
+	seen := map[string]struct{}{"": {}}
 	for _, f := range folders {
-		if strings.HasPrefix(f.InventoryPath, prefix) {
-			data = append(data, f.InventoryPath)
+		for _, folderPath := range folderOptions(f.InventoryPath, prefix) {
+			if _, exists := seen[folderPath]; exists {
+				continue
+			}
+
+			seen[folderPath] = struct{}{}
+			data = append(data, folderPath)
 		}
 	}
 
 	return data, nil
+}
+
+func folderOptions(inventoryPath, prefix string) []string {
+	if !strings.HasPrefix(inventoryPath, prefix) {
+		return nil
+	}
+
+	relativePath := strings.TrimPrefix(strings.TrimPrefix(inventoryPath, prefix), "/")
+	if relativePath == "" {
+		return nil
+	}
+
+	return []string{inventoryPath, relativePath}
 }
 
 func listHosts(ctx context.Context, finder *find.Finder) ([]string, error) {
