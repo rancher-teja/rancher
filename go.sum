@@ -623,6 +623,8 @@ github.com/prometheus/otlptranslator v1.0.0 h1:s0LJW/iN9dkIH+EnhiD3BlkkP5QVIUVEo
 github.com/prometheus/otlptranslator v1.0.0/go.mod h1:vRYWnXvI6aWGpsdY/mOT/cbeVRBlPWtBNDb7kGR3uKM=
 github.com/prometheus/procfs v0.20.1 h1:XwbrGOIplXW/AU3YhIhLODXMJYyC1isLFfYCsTEycfc=
 github.com/prometheus/procfs v0.20.1/go.mod h1:o9EMBZGRyvDrSPH1RqdxhojkuXstoe4UlK79eF5TGGo=
+github.com/rancher-teja/machine v0.15.1-0.20260720095711-1a3c2784ad11 h1:Hxo3zy/jRO0fWqtrmkjurzm98IJvtoDyEV/hSQquqzQ=
+github.com/rancher-teja/machine v0.15.1-0.20260720095711-1a3c2784ad11/go.mod h1:r60fVK+VxEfozshjyY7waT2lYZt/lVgG4T0nySQdnJs=
 github.com/rancher/aks-operator v1.15.0-rc.4 h1:HYFm5FiOLfUmSL75g/O4Vvu8WM/k0932zRrgT9NTwPE=
 github.com/rancher/aks-operator v1.15.0-rc.4/go.mod h1:MhY/DNfRpaUgHjC/RFM7Lf2LAVzvgieRY1ZKNBVsGz0=
 github.com/rancher/ali-operator v1.15.0-rc.3 h1:FVIgpnCaLyZjsJ6IYLHZV3vs7GjUYA4OwmOlPA/QtnY=
@@ -647,8 +649,6 @@ github.com/rancher/kubernetes-provider-detector v0.1.6-0.20240606163014-fcae7577
 github.com/rancher/kubernetes-provider-detector v0.1.6-0.20240606163014-fcae75779379/go.mod h1:IfqyXrTiCAg8rTJodbGApTiORgujJnBH+QyHHJlFSII=
 github.com/rancher/lasso v0.2.9 h1:5Xk9Qid+YDOLpa6s5xalcSR0cA5BMbgWcaOZ8kdNU7k=
 github.com/rancher/lasso v0.2.9/go.mod h1:PMtxoVahRQvhEAi1HVOfyLDe1CrtGwTqOtkPVjSSkns=
-github.com/rancher/machine v0.15.0-rancher145 h1:TDSVdacNHH/FKuc1qhapvCIJAU9ZE0/gPOz9x3BPyok=
-github.com/rancher/machine v0.15.0-rancher145/go.mod h1:r60fVK+VxEfozshjyY7waT2lYZt/lVgG4T0nySQdnJs=
 github.com/rancher/moq v0.0.0-20200712062324-13d1f37d2d77 h1:k+vzmkZQsH06rZnDr+phskSixG9ByNj9gVdzHcc8nxw=
 github.com/rancher/moq v0.0.0-20200712062324-13d1f37d2d77/go.mod h1:wpITyDPTi/Na5h73XkbuEf2AP9fbgrIGqqxVzFhYD6U=
 github.com/rancher/muchang v0.1.1 h1:2UJ7FPn+DZKspmqioWQpGb/DvotKFJZdFrV961ZPHdU=
