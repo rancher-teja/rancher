@@ -623,8 +623,8 @@ github.com/prometheus/otlptranslator v1.0.0 h1:s0LJW/iN9dkIH+EnhiD3BlkkP5QVIUVEo
 github.com/prometheus/otlptranslator v1.0.0/go.mod h1:vRYWnXvI6aWGpsdY/mOT/cbeVRBlPWtBNDb7kGR3uKM=
 github.com/prometheus/procfs v0.20.1 h1:XwbrGOIplXW/AU3YhIhLODXMJYyC1isLFfYCsTEycfc=
 github.com/prometheus/procfs v0.20.1/go.mod h1:o9EMBZGRyvDrSPH1RqdxhojkuXstoe4UlK79eF5TGGo=
-github.com/rancher-teja/machine v0.15.1-0.20260720095711-1a3c2784ad11 h1:Hxo3zy/jRO0fWqtrmkjurzm98IJvtoDyEV/hSQquqzQ=
-github.com/rancher-teja/machine v0.15.1-0.20260720095711-1a3c2784ad11/go.mod h1:r60fVK+VxEfozshjyY7waT2lYZt/lVgG4T0nySQdnJs=
+github.com/rancher-teja/machine v0.15.1-0.20260724114819-3fd9851c84fb h1:AwzEE0K2KcoXcmBq1TO8BHigXAR0p1Kc88Ii6KUjPF4=
+github.com/rancher-teja/machine v0.15.1-0.20260724114819-3fd9851c84fb/go.mod h1:r60fVK+VxEfozshjyY7waT2lYZt/lVgG4T0nySQdnJs=
 github.com/rancher/aks-operator v1.15.0-rc.4 h1:HYFm5FiOLfUmSL75g/O4Vvu8WM/k0932zRrgT9NTwPE=
 github.com/rancher/aks-operator v1.15.0-rc.4/go.mod h1:MhY/DNfRpaUgHjC/RFM7Lf2LAVzvgieRY1ZKNBVsGz0=
 github.com/rancher/ali-operator v1.15.0-rc.3 h1:FVIgpnCaLyZjsJ6IYLHZV3vs7GjUYA4OwmOlPA/QtnY=
