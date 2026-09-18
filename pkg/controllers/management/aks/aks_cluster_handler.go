@@ -130,6 +130,7 @@ func (e *aksOperatorController) onClusterChange(_ string, cluster *apimgmtv3.Clu
 	status, _ := aksClusterConfigDynamic.Object["status"].(map[string]interface{})
 	phase := status["phase"]
 	failureMessage, _ := status["failureMessage"].(string)
+	message, _ := status["message"].(string)
 
 	switch phase {
 	case "creating":
@@ -140,7 +141,7 @@ func (e *aksOperatorController) onClusterChange(_ string, cluster *apimgmtv3.Clu
 		e.ClusterEnqueueAfter(cluster.Name, enqueueTime)
 		if failureMessage == "" {
 			logrus.Infof("waiting for cluster AKS [%s] to finish creating", cluster.Name)
-			return e.SetUnknown(cluster, apimgmtv3.ClusterConditionProvisioned, "")
+			return e.SetUnknown(cluster, apimgmtv3.ClusterConditionProvisioned, message)
 		}
 		logrus.Infof("waiting for cluster AKS [%s] create failure to be resolved", cluster.Name)
 		return e.SetFalse(cluster, apimgmtv3.ClusterConditionProvisioned, failureMessage)
@@ -237,7 +238,7 @@ func (e *aksOperatorController) onClusterChange(_ string, cluster *apimgmtv3.Clu
 		e.ClusterEnqueueAfter(cluster.Name, enqueueTime)
 		if failureMessage == "" {
 			logrus.Infof("waiting for cluster AKS [%s] to update", cluster.Name)
-			return e.SetUnknown(cluster, apimgmtv3.ClusterConditionUpdated, "")
+			return e.SetUnknown(cluster, apimgmtv3.ClusterConditionUpdated, message)
 		}
 		logrus.Infof("waiting for cluster AKS [%s] update failure to be resolved", cluster.Name)
 		return e.SetFalse(cluster, apimgmtv3.ClusterConditionUpdated, failureMessage)
